@@ -4,12 +4,12 @@
 	#endif
 #endif
 
-gb_internal void odin_cpuid(int leaf, int result[]) {
+static void odin_cpuid(int leaf, int result[]) {
 	#if defined(GB_CPU_ARM) || defined(GB_CPU_RISCV)
 		return;
 
 	#elif defined(GB_CPU_X86)
-	
+
 		#if defined(GB_COMPILER_MSVC)
 			__cpuid(result, leaf);
 		#else
@@ -19,7 +19,7 @@ gb_internal void odin_cpuid(int leaf, int result[]) {
 	#endif
 }
 
-gb_internal bool should_use_march_native() {
+static bool should_use_march_native() {
 	#if !defined(GB_CPU_X86)
 		return false;
 

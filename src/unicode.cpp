@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 
-gb_internal bool rune_is_letter(Rune r) {
+static bool rune_is_letter(Rune r) {
 	if (r < 0x80) {
 		if (r == '_') {
 			return true;
@@ -30,14 +30,14 @@ gb_internal bool rune_is_letter(Rune r) {
 	return false;
 }
 
-gb_internal bool rune_is_digit(Rune r) {
+static bool rune_is_digit(Rune r) {
 	if (r < 0x80) {
 		return (cast(u32)r - '0') < 10;
 	}
 	return utf8proc_category(r) == UTF8PROC_CATEGORY_ND;
 }
 
-gb_internal bool rune_is_letter_or_digit(Rune r) {
+static bool rune_is_letter_or_digit(Rune r) {
 	if (r < 0x80) {
 		if (r == '_') {
 			return true;
@@ -60,7 +60,7 @@ gb_internal bool rune_is_letter_or_digit(Rune r) {
 	return false;
 }
 
-gb_internal bool rune_is_whitespace(Rune r) {
+static bool rune_is_whitespace(Rune r) {
 	switch (r) {
 	case ' ':
 	case '\t':
@@ -72,7 +72,7 @@ gb_internal bool rune_is_whitespace(Rune r) {
 }
 
 
-gb_global u8 const global__utf8_first[256] = {
+static u8 const global__utf8_first[256] = {
 	0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, // 0x00-0x0F
 	0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, // 0x10-0x1F
 	0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, // 0x20-0x2F
@@ -95,7 +95,7 @@ typedef struct Utf8AcceptRange {
 	u8 lo, hi;
 } Utf8AcceptRange;
 
-gb_global Utf8AcceptRange const global__utf8_accept_ranges[] = {
+static Utf8AcceptRange const global__utf8_accept_ranges[] = {
 	{0x80, 0xbf},
 	{0xa0, 0xbf},
 	{0x80, 0x9f},
@@ -104,7 +104,7 @@ gb_global Utf8AcceptRange const global__utf8_accept_ranges[] = {
 };
 
 
-gb_internal isize utf8_decode(u8 const *str, isize str_len, Rune *codepoint_out) {
+static isize utf8_decode(u8 const *str, isize str_len, Rune *codepoint_out) {
 	isize width = 0;
 	Rune codepoint = GB_RUNE_INVALID;
 

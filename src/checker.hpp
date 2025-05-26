@@ -20,7 +20,7 @@ struct ExprInfo {
 	ExactValue     value;
 };
 
-gb_internal gb_inline ExprInfo *make_expr_info(AddressingMode mode, Type *type, ExactValue const &value, bool is_lhs) {
+static gb_inline ExprInfo *make_expr_info(AddressingMode mode, Type *type, ExactValue const &value, bool is_lhs) {
 	ExprInfo *ei = gb_alloc_item(permanent_allocator(), ExprInfo);
 	ei->mode   = mode;
 	ei->type   = type;
@@ -162,7 +162,7 @@ struct AttributeContext {
 	String enable_target_feature;  // will be enabled for the procedure only
 };
 
-gb_internal gb_inline AttributeContext make_attribute_context(String link_prefix, String link_suffix) {
+static gb_inline AttributeContext make_attribute_context(String link_prefix, String link_suffix) {
 	AttributeContext ac = {};
 	ac.link_prefix = link_prefix;
 	ac.link_suffix = link_suffix;
@@ -172,7 +172,7 @@ gb_internal gb_inline AttributeContext make_attribute_context(String link_prefix
 #define DECL_ATTRIBUTE_PROC(_name) bool _name(CheckerContext *c, Ast *elem, String name, Ast *value, AttributeContext *ac)
 typedef DECL_ATTRIBUTE_PROC(DeclAttributeProc);
 
-gb_internal void check_decl_attributes(CheckerContext *c, Array<Ast *> const &attributes, DeclAttributeProc *proc, AttributeContext *ac);
+static void check_decl_attributes(CheckerContext *c, Array<Ast *> const &attributes, DeclAttributeProc *proc, AttributeContext *ac);
 
 #include "name_canonicalization.hpp"
 
@@ -359,7 +359,7 @@ struct UntypedExprInfo {
 	ExprInfo *info;
 };
 
-typedef PtrMap<Ast *, ExprInfo *> UntypedExprInfoMap; 
+typedef PtrMap<Ast *, ExprInfo *> UntypedExprInfoMap;
 
 enum ObjcMsgKind : u32 {
 	ObjcMsg_normal,
@@ -564,8 +564,8 @@ struct CheckerContext {
 	Ast *assignment_lhs_hint;
 };
 
-gb_internal u64 check_vet_flags(CheckerContext *c);
-gb_internal u64 check_vet_flags(Ast *node);
+static u64 check_vet_flags(CheckerContext *c);
+static u64 check_vet_flags(Ast *node);
 
 
 struct Checker {
@@ -588,66 +588,66 @@ struct Checker {
 
 
 
-gb_global AstPackage *builtin_pkg    = nullptr;
-gb_global AstPackage *intrinsics_pkg = nullptr;
-gb_global AstPackage *config_pkg      = nullptr;
+static AstPackage *builtin_pkg    = nullptr;
+static AstPackage *intrinsics_pkg = nullptr;
+static AstPackage *config_pkg      = nullptr;
 
 
 // CheckerInfo API
-gb_internal TypeAndValue type_and_value_of_expr (Ast *expr);
-gb_internal Type *       type_of_expr           (Ast *expr);
-gb_internal Entity *     implicit_entity_of_node(Ast *clause);
-gb_internal DeclInfo *   decl_info_of_ident     (Ast *ident);
-gb_internal DeclInfo *   decl_info_of_entity    (Entity * e);
-gb_internal AstFile *    ast_file_of_filename   (CheckerInfo *i, String   filename);
+static TypeAndValue type_and_value_of_expr (Ast *expr);
+static Type *       type_of_expr           (Ast *expr);
+static Entity *     implicit_entity_of_node(Ast *clause);
+static DeclInfo *   decl_info_of_ident     (Ast *ident);
+static DeclInfo *   decl_info_of_entity    (Entity * e);
+static AstFile *    ast_file_of_filename   (CheckerInfo *i, String   filename);
 // IMPORTANT: Only to use once checking is done
-gb_internal isize        type_info_index        (CheckerInfo *i, Type *type, bool error_on_failure);
-gb_internal isize        type_info_index        (CheckerInfo *info, TypeInfoPair pair, bool error_on_failure);
+static isize        type_info_index        (CheckerInfo *i, Type *type, bool error_on_failure);
+static isize        type_info_index        (CheckerInfo *info, TypeInfoPair pair, bool error_on_failure);
 
 // Will return nullptr if not found
-gb_internal Entity *entity_of_node(Ast *expr);
+static Entity *entity_of_node(Ast *expr);
 
 
-gb_internal Entity *scope_lookup_current(Scope *s, String const &name);
-gb_internal Entity *scope_lookup (Scope *s, String const &name);
-gb_internal void    scope_lookup_parent (Scope *s, String const &name, Scope **scope_, Entity **entity_);
-gb_internal Entity *scope_insert (Scope *s, Entity *entity);
+static Entity *scope_lookup_current(Scope *s, String const &name);
+static Entity *scope_lookup (Scope *s, String const &name);
+static void    scope_lookup_parent (Scope *s, String const &name, Scope **scope_, Entity **entity_);
+static Entity *scope_insert (Scope *s, Entity *entity);
 
 
-gb_internal void      add_type_and_value      (CheckerContext *c, Ast *expression, AddressingMode mode, Type *type, ExactValue const &value);
-gb_internal ExprInfo *check_get_expr_info     (CheckerContext *c, Ast *expr);
-gb_internal void      add_untyped             (CheckerContext *c, Ast *expression, AddressingMode mode, Type *basic_type, ExactValue const &value);
-gb_internal void      add_entity_use          (CheckerContext *c, Ast *identifier, Entity *entity);
-gb_internal void      add_implicit_entity     (CheckerContext *c, Ast *node, Entity *e);
-gb_internal void      add_entity_and_decl_info(CheckerContext *c, Ast *identifier, Entity *e, DeclInfo *d, bool is_exported=true);
-gb_internal void      add_type_info_type      (CheckerContext *c, Type *t);
+static void      add_type_and_value      (CheckerContext *c, Ast *expression, AddressingMode mode, Type *type, ExactValue const &value);
+static ExprInfo *check_get_expr_info     (CheckerContext *c, Ast *expr);
+static void      add_untyped             (CheckerContext *c, Ast *expression, AddressingMode mode, Type *basic_type, ExactValue const &value);
+static void      add_entity_use          (CheckerContext *c, Ast *identifier, Entity *entity);
+static void      add_implicit_entity     (CheckerContext *c, Ast *node, Entity *e);
+static void      add_entity_and_decl_info(CheckerContext *c, Ast *identifier, Entity *e, DeclInfo *d, bool is_exported=true);
+static void      add_type_info_type      (CheckerContext *c, Type *t);
 
-gb_internal void check_add_import_decl(CheckerContext *c, Ast *decl);
-gb_internal void check_add_foreign_import_decl(CheckerContext *c, Ast *decl);
-
-
-gb_internal void check_entity_decl(CheckerContext *c, Entity *e, DeclInfo *d, Type *named_type);
-gb_internal void check_const_decl(CheckerContext *c, Entity *e, Ast *type_expr, Ast *init_expr, Type *named_type);
-gb_internal void check_type_decl(CheckerContext *c, Entity *e, Ast *type_expr, Type *def);
-
-gb_internal bool check_arity_match(CheckerContext *c, AstValueDecl *vd, bool is_global = false);
-gb_internal void check_collect_entities(CheckerContext *c, Slice<Ast *> const &nodes);
-gb_internal void check_collect_entities_from_when_stmt(CheckerContext *c, AstWhenStmt *ws);
-gb_internal void check_delayed_file_import_entity(CheckerContext *c, Ast *decl);
-
-gb_internal CheckerTypePath *new_checker_type_path();
-gb_internal void destroy_checker_type_path(CheckerTypePath *tp);
-
-gb_internal void    check_type_path_push(CheckerContext *c, Entity *e);
-gb_internal Entity *check_type_path_pop (CheckerContext *c);
-
-gb_internal void init_core_context(Checker *c);
-gb_internal void init_mem_allocator(Checker *c);
-
-gb_internal void add_untyped_expressions(CheckerInfo *cinfo, UntypedExprInfoMap *untyped);
+static void check_add_import_decl(CheckerContext *c, Ast *decl);
+static void check_add_foreign_import_decl(CheckerContext *c, Ast *decl);
 
 
-gb_internal GenTypesData *ensure_polymorphic_record_entity_has_gen_types(CheckerContext *ctx, Type *original_type);
+static void check_entity_decl(CheckerContext *c, Entity *e, DeclInfo *d, Type *named_type);
+static void check_const_decl(CheckerContext *c, Entity *e, Ast *type_expr, Ast *init_expr, Type *named_type);
+static void check_type_decl(CheckerContext *c, Entity *e, Ast *type_expr, Type *def);
+
+static bool check_arity_match(CheckerContext *c, AstValueDecl *vd, bool is_global = false);
+static void check_collect_entities(CheckerContext *c, Slice<Ast *> const &nodes);
+static void check_collect_entities_from_when_stmt(CheckerContext *c, AstWhenStmt *ws);
+static void check_delayed_file_import_entity(CheckerContext *c, Ast *decl);
+
+static CheckerTypePath *new_checker_type_path();
+static void destroy_checker_type_path(CheckerTypePath *tp);
+
+static void    check_type_path_push(CheckerContext *c, Entity *e);
+static Entity *check_type_path_pop (CheckerContext *c);
+
+static void init_core_context(Checker *c);
+static void init_mem_allocator(Checker *c);
+
+static void add_untyped_expressions(CheckerInfo *cinfo, UntypedExprInfoMap *untyped);
 
 
-gb_internal void init_map_internal_types(Type *type);
+static GenTypesData *ensure_polymorphic_record_entity_has_gen_types(CheckerContext *ctx, Type *original_type);
+
+
+static void init_map_internal_types(Type *type);

@@ -17,23 +17,23 @@ struct StringSet {
 };
 
 
-gb_internal void string_set_init   (StringSet *s, isize capacity = 16);
-gb_internal void string_set_destroy(StringSet *s);
-gb_internal void string_set_add    (StringSet *s, String const &str);
-gb_internal bool string_set_update (StringSet *s, String const &str); // returns true if it previously existed
-gb_internal bool string_set_exists (StringSet *s, String const &str);
-gb_internal void string_set_remove (StringSet *s, String const &str);
-gb_internal void string_set_clear  (StringSet *s);
-gb_internal void string_set_grow   (StringSet *s);
-gb_internal void string_set_rehash (StringSet *s, isize new_count);
+static void string_set_init   (StringSet *s, isize capacity = 16);
+static void string_set_destroy(StringSet *s);
+static void string_set_add    (StringSet *s, String const &str);
+static bool string_set_update (StringSet *s, String const &str); // returns true if it previously existed
+static bool string_set_exists (StringSet *s, String const &str);
+static void string_set_remove (StringSet *s, String const &str);
+static void string_set_clear  (StringSet *s);
+static void string_set_grow   (StringSet *s);
+static void string_set_rehash (StringSet *s, isize new_count);
 
-gb_internal gbAllocator string_set_allocator(void) {
+static gbAllocator string_set_allocator(void) {
 	return heap_allocator();
 }
 
-gb_internal gb_inline void string_set_init(StringSet *s, isize capacity) {
+static gb_inline void string_set_init(StringSet *s, isize capacity) {
 	capacity = next_pow2_isize(gb_max(16, capacity));
-	
+
 	slice_init(&s->hashes,  string_set_allocator(), capacity);
 	array_init(&s->entries, string_set_allocator(), 0, capacity);
 	for (isize i = 0; i < capacity; i++) {
@@ -41,7 +41,7 @@ gb_internal gb_inline void string_set_init(StringSet *s, isize capacity) {
 	}
 }
 
-gb_internal gb_inline void string_set_destroy(StringSet *s) {
+static gb_inline void string_set_destroy(StringSet *s) {
 	if (s->entries.allocator.proc == nullptr) {
 		s->entries.allocator = string_set_allocator();
 	}
@@ -49,7 +49,7 @@ gb_internal gb_inline void string_set_destroy(StringSet *s) {
 	array_free(&s->entries);
 }
 
-gb_internal MapIndex string_set__add_entry(StringSet *s, StringHashKey const &key) {
+static MapIndex string_set__add_entry(StringSet *s, StringHashKey const &key) {
 	StringSetEntry e = {};
 	e.hash = key.hash;
 	e.next = MAP_SENTINEL;
@@ -58,7 +58,7 @@ gb_internal MapIndex string_set__add_entry(StringSet *s, StringHashKey const &ke
 	return cast(MapIndex)(s->entries.count-1);
 }
 
-gb_internal MapFindResult string_set__find(StringSet *s, StringHashKey const &key) {
+static MapFindResult string_set__find(StringSet *s, StringHashKey const &key) {
 	MapFindResult fr = {MAP_SENTINEL, MAP_SENTINEL, MAP_SENTINEL};
 	if (s->hashes.count > 0) {
 		fr.hash_index = cast(MapIndex)(((u64)key.hash) % s->hashes.count);
@@ -74,7 +74,7 @@ gb_internal MapFindResult string_set__find(StringSet *s, StringHashKey const &ke
 	}
 	return fr;
 }
-gb_internal MapFindResult string_set__find_from_entry(StringSet *s, StringSetEntry *e) {
+static MapFindResult string_set__find_from_entry(StringSet *s, StringSetEntry *e) {
 	MapFindResult fr = {MAP_SENTINEL, MAP_SENTINEL, MAP_SENTINEL};
 	if (s->hashes.count > 0) {
 		fr.hash_index = cast(MapIndex)(e->hash % s->hashes.count);
@@ -91,17 +91,17 @@ gb_internal MapFindResult string_set__find_from_entry(StringSet *s, StringSetEnt
 }
 
 
-gb_internal b32 string_set__full(StringSet *s) {
+static b32 string_set__full(StringSet *s) {
 	return 0.75f * s->hashes.count <= s->entries.count;
 }
 
-gb_internal gb_inline void string_set_grow(StringSet *s) {
+static gb_inline void string_set_grow(StringSet *s) {
 	isize new_count = gb_max(s->hashes.count<<1, 16);
 	string_set_rehash(s, new_count);
 }
 
 
-gb_internal void string_set_reset_entries(StringSet *s) {
+static void string_set_reset_entries(StringSet *s) {
 	for (isize i = 0; i < s->hashes.count; i++) {
 		s->hashes.data[i] = MAP_SENTINEL;
 	}
@@ -118,7 +118,7 @@ gb_internal void string_set_reset_entries(StringSet *s) {
 	}
 }
 
-gb_internal void string_set_reserve(StringSet *s, isize cap) {
+static void string_set_reserve(StringSet *s, isize cap) {
 	if (s->entries.allocator.proc == nullptr) {
 		s->entries.allocator = string_set_allocator();
 	}
@@ -131,7 +131,7 @@ gb_internal void string_set_reserve(StringSet *s, isize cap) {
 }
 
 
-gb_internal void string_set_rehash(StringSet *s, isize new_count) {
+static void string_set_rehash(StringSet *s, isize new_count) {
 	string_set_reserve(s, new_count);
 }
 
@@ -141,7 +141,7 @@ gb_inline bool string_set_exists(StringSet *s, String const &str) {
 	return index != MAP_SENTINEL;
 }
 
-gb_internal void string_set_add(StringSet *s, String const &str) {
+static void string_set_add(StringSet *s, String const &str) {
 	MapIndex index;
 	MapFindResult fr;
 	StringHashKey key = string_hash_string(str);
@@ -166,7 +166,7 @@ gb_internal void string_set_add(StringSet *s, String const &str) {
 	}
 }
 
-gb_internal bool string_set_update(StringSet *s, String const &str) {
+static bool string_set_update(StringSet *s, String const &str) {
 	bool exists = false;
 	MapIndex index;
 	MapFindResult fr;
@@ -195,7 +195,7 @@ gb_internal bool string_set_update(StringSet *s, String const &str) {
 }
 
 
-gb_internal void string_set__erase(StringSet *s, MapFindResult fr) {
+static void string_set__erase(StringSet *s, MapFindResult fr) {
 	MapFindResult last;
 	if (fr.entry_prev == MAP_SENTINEL) {
 		s->hashes[fr.hash_index] = s->entries[fr.entry_index].next;
@@ -219,7 +219,7 @@ gb_internal void string_set__erase(StringSet *s, MapFindResult fr) {
 	}
 }
 
-gb_internal void string_set_remove(StringSet *s, String const &str) {
+static void string_set_remove(StringSet *s, String const &str) {
 	StringHashKey key = string_hash_string(str);
 	MapFindResult fr = string_set__find(s, key);
 	if (fr.entry_index != MAP_SENTINEL) {
@@ -227,7 +227,7 @@ gb_internal void string_set_remove(StringSet *s, String const &str) {
 	}
 }
 
-gb_internal gb_inline void string_set_clear(StringSet *s) {
+static gb_inline void string_set_clear(StringSet *s) {
 	array_clear(&s->entries);
 	for_array(i, s->hashes) {
 		s->hashes.data[i] = MAP_SENTINEL;
@@ -235,18 +235,18 @@ gb_internal gb_inline void string_set_clear(StringSet *s) {
 }
 
 
-gb_internal StringSetEntry *begin(StringSet &m) noexcept {
+static StringSetEntry *begin(StringSet &m) noexcept {
 	return m.entries.data;
 }
-gb_internal StringSetEntry const *begin(StringSet const &m) noexcept {
+static StringSetEntry const *begin(StringSet const &m) noexcept {
 	return m.entries.data;
 }
 
 
-gb_internal StringSetEntry *end(StringSet &m) noexcept {
+static StringSetEntry *end(StringSet &m) noexcept {
 	return m.entries.data + m.entries.count;
 }
 
-gb_internal StringSetEntry const *end(StringSet const &m) noexcept {
+static StringSetEntry const *end(StringSet const &m) noexcept {
 	return m.entries.data + m.entries.count;
 }

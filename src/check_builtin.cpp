@@ -1,6 +1,6 @@
 typedef bool (BuiltinTypeIsProc)(Type *t);
 
-gb_global BuiltinTypeIsProc *builtin_type_is_procs[BuiltinProc__type_simple_boolean_end - BuiltinProc__type_simple_boolean_begin] = {
+static BuiltinTypeIsProc *builtin_type_is_procs[BuiltinProc__type_simple_boolean_end - BuiltinProc__type_simple_boolean_begin] = {
 	nullptr, // BuiltinProc__type_simple_boolean_begin
 
 	is_type_boolean,
@@ -51,7 +51,7 @@ gb_global BuiltinTypeIsProc *builtin_type_is_procs[BuiltinProc__type_simple_bool
 };
 
 
-gb_internal void check_or_else_right_type(CheckerContext *c, Ast *expr, String const &name, Type *right_type) {
+static void check_or_else_right_type(CheckerContext *c, Ast *expr, String const &name, Type *right_type) {
 	if (right_type == nullptr) {
 		return;
 	}
@@ -62,7 +62,7 @@ gb_internal void check_or_else_right_type(CheckerContext *c, Ast *expr, String c
 	}
 }
 
-gb_internal void check_or_else_split_types(CheckerContext *c, Operand *x, String const &name, Type **left_type_, Type **right_type_) {
+static void check_or_else_split_types(CheckerContext *c, Operand *x, String const &name, Type **left_type_, Type **right_type_) {
 	Type *left_type = nullptr;
 	Type *right_type = nullptr;
 	if (x->type->kind == Type_Tuple) {
@@ -88,7 +88,7 @@ gb_internal void check_or_else_split_types(CheckerContext *c, Operand *x, String
 }
 
 
-gb_internal void check_or_else_expr_no_value_error(CheckerContext *c, String const &name, Operand const &x, Type *type_hint) {
+static void check_or_else_expr_no_value_error(CheckerContext *c, String const &name, Operand const &x, Type *type_hint) {
 	ERROR_BLOCK();
 	gbString t = type_to_string(x.type);
 	error(x.expr, "'%.*s' does not return a value, value is of type %s", LIT(name), t);
@@ -117,7 +117,7 @@ gb_internal void check_or_else_expr_no_value_error(CheckerContext *c, String con
 }
 
 
-gb_internal void check_or_return_split_types(CheckerContext *c, Operand *x, String const &name, Type **left_type_, Type **right_type_) {
+static void check_or_return_split_types(CheckerContext *c, Operand *x, String const &name, Type **left_type_, Type **right_type_) {
 	Type *left_type = nullptr;
 	Type *right_type = nullptr;
 	if (x->type->kind == Type_Tuple) {
@@ -143,7 +143,7 @@ gb_internal void check_or_return_split_types(CheckerContext *c, Operand *x, Stri
 }
 
 
-gb_internal bool does_require_msgSend_stret(Type *return_type) {
+static bool does_require_msgSend_stret(Type *return_type) {
 	if (return_type == nullptr) {
 		return false;
 	}
@@ -169,7 +169,7 @@ gb_internal bool does_require_msgSend_stret(Type *return_type) {
 	return false;
 }
 
-gb_internal ObjcMsgKind get_objc_proc_kind(Type *return_type) {
+static ObjcMsgKind get_objc_proc_kind(Type *return_type) {
 	if (return_type == nullptr) {
 		return ObjcMsg_normal;
 	}
@@ -193,7 +193,7 @@ gb_internal ObjcMsgKind get_objc_proc_kind(Type *return_type) {
 	return ObjcMsg_normal;
 }
 
-gb_internal void add_objc_proc_type(CheckerContext *c, Ast *call, Type *return_type, Slice<Type *> param_types) {
+static void add_objc_proc_type(CheckerContext *c, Ast *call, Type *return_type, Slice<Type *> param_types) {
 	ObjcMsgKind kind = get_objc_proc_kind(return_type);
 
 	Scope *scope = create_scope(c->info, nullptr);
@@ -233,7 +233,7 @@ gb_internal void add_objc_proc_type(CheckerContext *c, Ast *call, Type *return_t
 	try_to_add_package_dependency(c, "runtime", "objc_msgSend_stret");
 }
 
-gb_internal bool is_constant_string(CheckerContext *c, String const &builtin_name, Ast *expr, String *name_) {
+static bool is_constant_string(CheckerContext *c, String const &builtin_name, Ast *expr, String *name_) {
 	Operand op = {};
 	check_expr(c, &op, expr);
 	if (op.mode == Addressing_Constant && op.value.kind == ExactValue_String) {
@@ -248,7 +248,7 @@ gb_internal bool is_constant_string(CheckerContext *c, String const &builtin_nam
 	return false;
 }
 
-gb_internal bool check_builtin_objc_procedure(CheckerContext *c, Operand *operand, Ast *call, i32 id, Type *type_hint) {
+static bool check_builtin_objc_procedure(CheckerContext *c, Operand *operand, Ast *call, i32 id, Type *type_hint) {
 	String const &builtin_name = builtin_procs[id].name;
 
 	if (build_context.metrics.os != TargetOs_darwin) {
@@ -359,10 +359,10 @@ gb_internal bool check_builtin_objc_procedure(CheckerContext *c, Operand *operan
 		return true;
 	} break;
 
-	case BuiltinProc_objc_find_selector: 
-	case BuiltinProc_objc_find_class: 
-	case BuiltinProc_objc_register_selector: 
-	case BuiltinProc_objc_register_class: 
+	case BuiltinProc_objc_find_selector:
+	case BuiltinProc_objc_find_class:
+	case BuiltinProc_objc_register_selector:
+	case BuiltinProc_objc_register_class:
 	{
 		String sel_name = {};
 		if (!is_constant_string(c, builtin_name, ce->args[0], &sel_name)) {
@@ -370,12 +370,12 @@ gb_internal bool check_builtin_objc_procedure(CheckerContext *c, Operand *operan
 		}
 
 		switch (id) {
-		case BuiltinProc_objc_find_selector: 
-		case BuiltinProc_objc_register_selector: 
+		case BuiltinProc_objc_find_selector:
+		case BuiltinProc_objc_register_selector:
 			operand->type = t_objc_SEL;
 			break;
-		case BuiltinProc_objc_find_class: 
-		case BuiltinProc_objc_register_class: 
+		case BuiltinProc_objc_find_class:
+		case BuiltinProc_objc_register_class:
 			operand->type = t_objc_Class;
 			break;
 
@@ -443,7 +443,7 @@ gb_internal bool check_builtin_objc_procedure(CheckerContext *c, Operand *operan
 	}
 }
 
-gb_internal bool check_atomic_memory_order_argument(CheckerContext *c, Ast *expr, String const &builtin_name, OdinAtomicMemoryOrder *memory_order_, char const *extra_message = nullptr) {
+static bool check_atomic_memory_order_argument(CheckerContext *c, Ast *expr, String const &builtin_name, OdinAtomicMemoryOrder *memory_order_, char const *extra_message = nullptr) {
 	Operand x = {};
 	check_expr_with_type_hint(c, &x, expr, t_atomic_memory_order);
 	if (x.mode == Addressing_Invalid) {
@@ -473,7 +473,7 @@ gb_internal bool check_atomic_memory_order_argument(CheckerContext *c, Ast *expr
 }
 
 
-gb_internal bool check_builtin_simd_operation(CheckerContext *c, Operand *operand, Ast *call, i32 id, Type *type_hint) {
+static bool check_builtin_simd_operation(CheckerContext *c, Operand *operand, Ast *call, i32 id, Type *type_hint) {
 	ast_node(ce, CallExpr, call);
 
 	String const &builtin_name = builtin_procs[id].name;
@@ -1319,7 +1319,7 @@ gb_internal bool check_builtin_simd_operation(CheckerContext *c, Operand *operan
 	return false;
 }
 
-gb_internal bool cache_load_file_directive(CheckerContext *c, Ast *call, String const &original_string, bool err_on_not_found, LoadFileCache **cache_, LoadFileTier tier, bool use_mutex=true) {
+static bool cache_load_file_directive(CheckerContext *c, Ast *call, String const &original_string, bool err_on_not_found, LoadFileCache **cache_, LoadFileTier tier, bool use_mutex=true) {
 	ast_node(ce, CallExpr, call);
 	ast_node(bd, BasicDirective, ce->proc);
 	String builtin_name = bd->name.string;
@@ -1440,7 +1440,7 @@ gb_internal bool cache_load_file_directive(CheckerContext *c, Ast *call, String 
 }
 
 
-gb_internal bool is_valid_type_for_load(Type *type) {
+static bool is_valid_type_for_load(Type *type) {
 	if (type == t_invalid) {
 		return false;
 	} else if (is_type_string(type)) {
@@ -1461,7 +1461,7 @@ gb_internal bool is_valid_type_for_load(Type *type) {
 	return false;
 }
 
-gb_internal bool check_atomic_ptr_argument(Operand *operand, String const &builtin_name, Type *elem) {
+static bool check_atomic_ptr_argument(Operand *operand, String const &builtin_name, Type *elem) {
 	if (!is_type_valid_atomic_type(elem)) {
 		error(operand->expr, "Only an integer, floating-point, boolean, or pointer can be used as an atomic for '%.*s'", LIT(builtin_name));
 		return false;
@@ -1470,7 +1470,7 @@ gb_internal bool check_atomic_ptr_argument(Operand *operand, String const &built
 
 }
 
-gb_internal LoadDirectiveResult check_load_directive(CheckerContext *c, Operand *operand, Ast *call, Type *type_hint, bool err_on_not_found) {
+static LoadDirectiveResult check_load_directive(CheckerContext *c, Operand *operand, Ast *call, Type *type_hint, bool err_on_not_found) {
 	ast_node(ce, CallExpr, call);
 	ast_node(bd, BasicDirective, ce->proc);
 	String name = bd->name.string;
@@ -1534,7 +1534,7 @@ gb_internal LoadDirectiveResult check_load_directive(CheckerContext *c, Operand 
 
 }
 
-gb_internal int file_cache_sort_cmp(void const *x, void const *y) {
+static int file_cache_sort_cmp(void const *x, void const *y) {
 	LoadFileCache const *a = *(LoadFileCache const **)(x);
 	LoadFileCache const *b = *(LoadFileCache const **)(y);
 	if (a == b) {
@@ -1543,7 +1543,7 @@ gb_internal int file_cache_sort_cmp(void const *x, void const *y) {
 	return string_compare(a->path, b->path);
 }
 
-gb_internal LoadDirectiveResult check_load_directory_directive(CheckerContext *c, Operand *operand, Ast *call, Type *type_hint, bool err_on_not_found) {
+static LoadDirectiveResult check_load_directory_directive(CheckerContext *c, Operand *operand, Ast *call, Type *type_hint, bool err_on_not_found) {
 	ast_node(ce, CallExpr, call);
 	ast_node(bd, BasicDirective, ce->proc);
 	String name = bd->name.string;
@@ -1678,7 +1678,7 @@ gb_internal LoadDirectiveResult check_load_directory_directive(CheckerContext *c
 	return result;
 }
 
-gb_internal bool check_hash_kind(CheckerContext *c, Ast *call, String const &hash_kind, u8 const *data, isize data_size, u64 *hash_value) {
+static bool check_hash_kind(CheckerContext *c, Ast *call, String const &hash_kind, u8 const *data, isize data_size, u64 *hash_value) {
 	ast_node(ce, CallExpr, call);
 	ast_node(bd, BasicDirective, ce->proc);
 	String name = bd->name.string;
@@ -1712,7 +1712,7 @@ gb_internal bool check_hash_kind(CheckerContext *c, Ast *call, String const &has
 		}
 		return false;
 	}
-	
+
 	if (hash_kind == "adler32") {
 		*hash_value = gb_adler32(data, data_size);
 	} else if (hash_kind == "crc32") {
@@ -1739,7 +1739,7 @@ gb_internal bool check_hash_kind(CheckerContext *c, Ast *call, String const &has
 
 
 
-gb_internal bool check_builtin_procedure_directive(CheckerContext *c, Operand *operand, Ast *call, Type *type_hint) {
+static bool check_builtin_procedure_directive(CheckerContext *c, Operand *operand, Ast *call, Type *type_hint) {
 	ast_node(ce, CallExpr, call);
 	ast_node(bd, BasicDirective, ce->proc);
 	String name = bd->name.string;
@@ -2101,7 +2101,7 @@ gb_internal bool check_builtin_procedure_directive(CheckerContext *c, Operand *o
 	return true;
 }
 
-gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, Ast *call, i32 id, Type *type_hint) {
+static bool check_builtin_procedure(CheckerContext *c, Operand *operand, Ast *call, i32 id, Type *type_hint) {
 	ast_node(ce, CallExpr, call);
 	if (ce->inlining != ProcInlining_none) {
 		error(call, "Inlining operators are not allowed on built-in procedures");
@@ -2139,10 +2139,10 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 	case BuiltinProc_max:
 	case BuiltinProc_type_is_subtype_of:
 	case BuiltinProc_objc_send:
-	case BuiltinProc_objc_find_selector: 
-	case BuiltinProc_objc_find_class: 
-	case BuiltinProc_objc_register_selector: 
-	case BuiltinProc_objc_register_class: 
+	case BuiltinProc_objc_find_selector:
+	case BuiltinProc_objc_find_class:
+	case BuiltinProc_objc_register_selector:
+	case BuiltinProc_objc_register_class:
 	case BuiltinProc_atomic_type_is_lock_free:
 	case BuiltinProc_has_target_feature:
 	case BuiltinProc_procedure_of:
@@ -2217,9 +2217,9 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		break;
 
 	case BuiltinProc_objc_send:
-	case BuiltinProc_objc_find_selector: 
-	case BuiltinProc_objc_find_class: 
-	case BuiltinProc_objc_register_selector: 
+	case BuiltinProc_objc_find_selector:
+	case BuiltinProc_objc_find_class:
+	case BuiltinProc_objc_register_selector:
 	case BuiltinProc_objc_register_class:
 	case BuiltinProc_objc_ivar_get:
 		return check_builtin_objc_procedure(c, operand, call, id, type_hint);
@@ -2418,9 +2418,9 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			return false;
 		}
 		GB_ASSERT(type != nullptr);
-		
+
 		String field_name = {};
-		
+
 		if (field_arg == nullptr) {
 			error(call, "Expected an identifier for field argument");
 			return false;
@@ -2434,7 +2434,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			return false;
 		}
 
-		
+
 		if (is_type_array(type)) {
 			gbString t = type_to_string(type);
 			error(field_arg, "Invalid a struct type for '%.*s', got '%s'", LIT(builtin_name), t);
@@ -2456,7 +2456,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 				return false;
 			}
 		}
-		
+
 		Selection sel = lookup_field(type, field_name, false);
 		if (sel.entity == nullptr) {
 			ERROR_BLOCK();
@@ -2484,7 +2484,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		operand->type  = t_uintptr;
 		break;
 	}
-	
+
 	case BuiltinProc_offset_of_by_string: {
 		// offset_of_by_string :: proc(Type, string) -> uintptr
 
@@ -2505,9 +2505,9 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			return false;
 		}
 		GB_ASSERT(type != nullptr);
-		
+
 		String field_name = {};
-		
+
 		if (field_arg == nullptr) {
 			error(call, "Expected a constant (not-empty) string for field argument");
 			return false;
@@ -2523,14 +2523,14 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			return false;
 		}
 
-		
+
 		if (is_type_array(type)) {
 			gbString t = type_to_string(type);
 			error(field_arg, "Invalid a struct type for '%.*s', got '%s'", LIT(builtin_name), t);
 			gb_string_free(t);
 			return false;
 		}
-		
+
 		Selection sel = lookup_field(type, field_name, false);
 		if (sel.entity == nullptr) {
 			ERROR_BLOCK();
@@ -3168,7 +3168,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 
 		Type *t = x->type;
 		Type *elem = core_array_type(t);
-		
+
 		if (is_type_complex(t)) {
 			if (x->mode == Addressing_Constant) {
 				ExactValue v = exact_value_to_complex(x->value);
@@ -3697,7 +3697,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			gb_string_free(type_str);
 			return false;
 		}
-		
+
 		if (ce->args.count <= 1) {
 			error(call, "Too few arguments for 'max', two or more are required");
 			return false;
@@ -4120,7 +4120,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		operand->mode = Addressing_Value;
 		break;
 	}
-	
+
 	case BuiltinProc_transpose: {
 		Operand x = {};
 		check_expr(c, &x, ce->args[0]);
@@ -4138,7 +4138,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			gb_string_free(s);
 			return false;
 		}
-		
+
 		operand->mode = Addressing_Value;
 		if (t->kind == Type_Array) {
 			i32 rank = type_math_rank(t);
@@ -4184,7 +4184,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		operand->type = check_matrix_type_hint(operand->type, type_hint);
 		break;
 	}
-	
+
 	case BuiltinProc_outer_product: {
 		Operand x = {};
 		Operand y = {};
@@ -4200,7 +4200,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			error(call, "'%.*s' expects only arrays", LIT(builtin_name));
 			return false;
 		}
-		
+
 		if (!is_type_array(x.type) && !is_type_array(y.type)) {
 			gbString s1 = type_to_string(x.type);
 			gbString s2 = type_to_string(y.type);
@@ -4209,7 +4209,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			gb_string_free(s1);
 			return false;
 		}
-		
+
 		Type *xt = base_type(x.type);
 		Type *yt = base_type(y.type);
 		GB_ASSERT(xt->kind == Type_Array);
@@ -4222,15 +4222,15 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			gb_string_free(s1);
 			return false;
 		}
-		
+
 		Type *elem = xt->Array.elem;
-		
+
 		if (!is_type_valid_for_matrix_elems(elem)) {
 			gbString s = type_to_string(elem);
 			error(call, "Matrix elements types are limited to integers, floats, and complex, got %s", s);
 			gb_string_free(s);
 		}
-		
+
 		if (xt->Array.count == 0 || yt->Array.count == 0) {
 			gbString s1 = type_to_string(x.type);
 			gbString s2 = type_to_string(y.type);
@@ -4239,19 +4239,19 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			gb_string_free(s1);
 			return false;
 		}
-		
+
 		i64 max_count = xt->Array.count*yt->Array.count;
 		if (max_count > MATRIX_ELEMENT_COUNT_MAX) {
 			error(call, "Product of the array lengths exceed the maximum matrix element count, got %d, expected a maximum of %d", cast(int)max_count, MATRIX_ELEMENT_COUNT_MAX);
 			return false;
 		}
-		
+
 		operand->mode = Addressing_Value;
 		operand->type = alloc_type_matrix(elem, xt->Array.count, yt->Array.count, nullptr, nullptr, false);
 		operand->type = check_matrix_type_hint(operand->type, type_hint);
 		break;
 	}
-	
+
 	case BuiltinProc_hadamard_product: {
 		Operand x = {};
 		Operand y = {};
@@ -4275,7 +4275,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			gb_string_free(s1);
 			return false;
 		}
-		
+
 		if (!are_types_identical(x.type, y.type)) {
 			gbString s1 = type_to_string(x.type);
 			gbString s2 = type_to_string(y.type);
@@ -4284,20 +4284,20 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			gb_string_free(s1);
 			return false;
 		}
-		
+
 		Type *elem = core_array_type(x.type);
 		if (!is_type_valid_for_matrix_elems(elem)) {
 			gbString s = type_to_string(elem);
 			error(call, "'%.*s' expects elements to be types are limited to integers, floats, and complex, got %s", LIT(builtin_name), s);
 			gb_string_free(s);
 		}
-		
+
 		operand->mode = Addressing_Value;
 		operand->type = x.type;
 		operand->type = check_matrix_type_hint(operand->type, type_hint);
 		break;
 	}
-	
+
 	case BuiltinProc_matrix_flatten: {
 		Operand x = {};
 		check_expr(c, &x, ce->args[0]);
@@ -4315,11 +4315,11 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			gb_string_free(s);
 			return false;
 		}
-		
+
 		operand->mode = Addressing_Value;
 		if (is_type_array(t)) {
 			// Do nothing
-			operand->type = x.type;			
+			operand->type = x.type;
 		} else {
 			GB_ASSERT(t->kind == Type_Matrix);
 			operand->type = alloc_type_array(t->Matrix.elem, t->Matrix.row_count*t->Matrix.column_count);
@@ -4327,7 +4327,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		operand->type = check_matrix_type_hint(operand->type, type_hint);
 		break;
 	}
-	
+
 	case BuiltinProc_is_package_imported: {
 		bool value = false;
 
@@ -4343,7 +4343,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 				}
 			}
 		}
-		
+
 		operand->mode = Addressing_Constant;
 		operand->type = t_untyped_bool;
 		operand->value = exact_value_bool(value);
@@ -5650,7 +5650,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			operand->type = x.type;
 		}
 		break;
-		
+
 	case BuiltinProc_prefetch_read_instruction:
 	case BuiltinProc_prefetch_read_data:
 	case BuiltinProc_prefetch_write_instruction:
@@ -5658,7 +5658,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		{
 			operand->mode = Addressing_NoValue;
 			operand->type = nullptr;
-			
+
 			Operand x = {};
 			Operand y = {};
 			check_expr(c, &x, ce->args[0]);
@@ -5682,10 +5682,10 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 				error(y.expr, "Second argument to '%.*s' representing the locality must be an integer in the range 0..=3", LIT(builtin_name));
 				return false;
 			}
-			
+
 		}
 		break;
-		
+
 	case BuiltinProc_syscall:
 		{
 			convert_to_typed(c, operand, t_uintptr);
@@ -5698,7 +5698,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 				Operand x = {};
 				check_expr(c, &x, ce->args[i]);
 				if (x.mode != Addressing_Invalid) {
-					convert_to_typed(c, &x, t_uintptr);	
+					convert_to_typed(c, &x, t_uintptr);
 				}
 				convert_to_typed(c, &x, t_uintptr);
 				if (!is_type_uintptr(x.type)) {
@@ -5707,9 +5707,9 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 					gb_string_free(t);
 				}
 			}
-			
+
 			isize max_arg_count = 32;
-			
+
 			switch (build_context.metrics.os) {
 			case TargetOs_darwin:
 			case TargetOs_linux:
@@ -5727,13 +5727,13 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 				error(call, "'%.*s' is not supported on this platform (%.*s)", LIT(builtin_name), LIT(target_os_names[build_context.metrics.os]));
 				break;
 			}
-			
+
 			if (ce->args.count > max_arg_count) {
 				error(ast_end_token(call), "'%.*s' has a maximum of %td arguments on this platform (%.*s), got %td", LIT(builtin_name), max_arg_count, LIT(target_os_names[build_context.metrics.os]), ce->args.count);
 			}
-			
-			
-			
+
+
+
 			operand->mode = Addressing_Value;
 			operand->type = t_uintptr;
 			return true;
@@ -5751,7 +5751,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 				Operand x = {};
 				check_expr(c, &x, ce->args[i]);
 				if (x.mode != Addressing_Invalid) {
-					convert_to_typed(c, &x, t_uintptr);	
+					convert_to_typed(c, &x, t_uintptr);
 				}
 				convert_to_typed(c, &x, t_uintptr);
 				if (!is_type_uintptr(x.type)) {
@@ -5760,9 +5760,9 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 					gb_string_free(t);
 				}
 			}
-			
+
 			isize max_arg_count = 32;
-			
+
 			switch (build_context.metrics.os) {
 			case TargetOs_freebsd:
 			case TargetOs_netbsd:
@@ -5778,11 +5778,11 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 				error(call, "'%.*s' is not supported on this platform (%.*s)", LIT(builtin_name), LIT(target_os_names[build_context.metrics.os]));
 				break;
 			}
-			
+
 			if (ce->args.count > max_arg_count) {
 				error(ast_end_token(call), "'%.*s' has a maximum of %td arguments on this platform (%.*s), got %td", LIT(builtin_name), max_arg_count, LIT(target_os_names[build_context.metrics.os]), ce->args.count);
 			}
-			
+
 			operand->mode = Addressing_Value;
 			operand->type = make_optional_ok_type(t_uintptr);
 			return true;
@@ -5881,7 +5881,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		if (operand->mode != Addressing_Type) {
 			error(operand->expr, "Expected a type for '%.*s'", LIT(builtin_name));
 			return false;
-		} 
+		}
 
 		if (is_type_polymorphic(operand->type)) {
 			gbString t = type_to_string(operand->type);
@@ -5893,8 +5893,8 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		{
 			Type *bt = base_type(operand->type);
 
-			if (bt->kind != Type_Basic || 
-				(bt->Basic.flags & BasicFlag_Unsigned) != 0 || 
+			if (bt->kind != Type_Basic ||
+				(bt->Basic.flags & BasicFlag_Unsigned) != 0 ||
 				(bt->Basic.flags & BasicFlag_Integer) == 0) {
 				gbString t = type_to_string(operand->type);
 				error(operand->expr, "Expected a signed integer type for '%.*s', got %s", LIT(builtin_name), t);
@@ -5918,7 +5918,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		if (operand->mode != Addressing_Type) {
 			error(operand->expr, "Expected a type for '%.*s'", LIT(builtin_name));
 			return false;
-		} 
+		}
 
 		if (is_type_polymorphic(operand->type)) {
 			gbString t = type_to_string(operand->type);
@@ -5930,8 +5930,8 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 		{
 			Type *bt = base_type(operand->type);
 
-			if (bt->kind != Type_Basic || 
-				(bt->Basic.flags & BasicFlag_Unsigned) == 0 || 
+			if (bt->kind != Type_Basic ||
+				(bt->Basic.flags & BasicFlag_Unsigned) == 0 ||
 				(bt->Basic.flags & BasicFlag_Integer) == 0) {
 				gbString t = type_to_string(operand->type);
 				error(operand->expr, "Expected an unsigned integer type for '%.*s', got %s", LIT(builtin_name), t);
@@ -6330,7 +6330,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 
 			u = base_type(u);
 			GB_ASSERT(u->kind == Type_Union);
-			
+
 			operand->mode = Addressing_Type;
 			operand->type = union_tag_type(u);
 		}
@@ -6356,13 +6356,13 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 
 			u = base_type(u);
 			GB_ASSERT(u->kind == Type_Union);
-			
+
 			// NOTE(jakubtomsu): forces calculation of variant_block_size
 			type_size_of(u);
 			// NOTE(Jeroen): A tag offset of zero is perfectly fine if all members of the union are empty structs.
 			//               What matters is that the tag size is > 0.
 			GB_ASSERT(u->Union.tag_size > 0);
-			
+
 			operand->mode = Addressing_Constant;
 			operand->type = t_untyped_integer;
 			operand->value = exact_value_i64(u->Union.variant_block_size);
@@ -6389,7 +6389,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 
 			u = base_type(u);
 			GB_ASSERT(u->kind == Type_Union);
-			
+
 			operand->mode = Addressing_Constant;
 			operand->type = t_untyped_integer;
 			operand->value = exact_value_i64(u->Union.kind == UnionType_no_nil ? 0 : 1);
@@ -6467,7 +6467,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 
 			u = base_type(u);
 			GB_ASSERT(u->kind == Type_Union);
-			
+
 			operand->mode = Addressing_Constant;
 			operand->type = t_untyped_integer;
 			operand->value = exact_value_i64(u->Union.variants.count);
@@ -6501,7 +6501,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 				operand->type = t_invalid;
 				return false;
 			}
-			
+
 			i64 index = big_int_to_i64(&x.value.value_integer);
 			if (index < 0 || index >= u->Union.variants.count) {
 				error(call, "Variant tag out of bounds index for '%.*s", LIT(builtin_name));
@@ -6514,7 +6514,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			operand->type = u->Union.variants[index];
 		}
 		break;
-	
+
 	case BuiltinProc_type_variant_index_of:
 		{
 			if (operand->mode != Addressing_Type) {
@@ -6537,7 +6537,7 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 			u = base_type(u);
 			GB_ASSERT(u->kind == Type_Union);
 
-			i64 index = -1;			
+			i64 index = -1;
 			for_array(i, u->Union.variants) {
 				Type *vt = u->Union.variants[i];
 				if (union_variant_index_types_equal(v, vt)) {
@@ -6545,14 +6545,14 @@ gb_internal bool check_builtin_procedure(CheckerContext *c, Operand *operand, As
 					break;
 				}
 			}
-			
+
 			if (index < 0) {
 				error(operand->expr, "Expected a variant type for '%.*s'", LIT(builtin_name));
 				operand->mode = Addressing_Invalid;
 				operand->type = t_invalid;
 				return false;
 			}
-			
+
 			operand->mode = Addressing_Constant;
 			operand->type = t_untyped_integer;
 			operand->value = exact_value_i64(index);

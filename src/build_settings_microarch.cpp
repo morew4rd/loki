@@ -4,7 +4,7 @@
 
 #if LLVM_VERSION_MAJOR >= 20
 // Generated with the featuregen script in `misc/featuregen`
-gb_global String target_microarch_list[TargetArch_COUNT] = {
+static String target_microarch_list[TargetArch_COUNT] = {
 	// TargetArch_Invalid:
 	str_lit(""),
 	// TargetArch_amd64:
@@ -24,7 +24,7 @@ gb_global String target_microarch_list[TargetArch_COUNT] = {
 };
 
 // Generated with the featuregen script in `misc/featuregen`
-gb_global String target_features_list[TargetArch_COUNT] = {
+static String target_features_list[TargetArch_COUNT] = {
 	// TargetArch_Invalid:
 	str_lit(""),
 	// TargetArch_amd64:
@@ -44,7 +44,7 @@ gb_global String target_features_list[TargetArch_COUNT] = {
 };
 
 // Generated with the featuregen script in `misc/featuregen`
-gb_global int target_microarch_counts[TargetArch_COUNT] = {
+static int target_microarch_counts[TargetArch_COUNT] = {
 	// TargetArch_Invalid:
 	0,
 	// TargetArch_amd64:
@@ -64,7 +64,7 @@ gb_global int target_microarch_counts[TargetArch_COUNT] = {
 };
 
 // Generated with the featuregen script in `misc/featuregen`
-gb_global MicroarchFeatureList microarch_features_list[] = {
+static MicroarchFeatureList microarch_features_list[] = {
 	// TargetArch_amd64:
 	{ str_lit("alderlake"), str_lit("64bit,64bit-mode,adx,aes,allow-light-256-bit,avx,avx2,avxvnni,bmi,bmi2,cldemote,clflushopt,clwb,cmov,crc32,cx16,cx8,f16c,false-deps-perm,false-deps-popcnt,fast-15bytenop,fast-gather,fast-scalar-fsqrt,fast-shld-rotate,fast-variable-crosslane-shuffle,fast-variable-perlane-shuffle,fast-vector-fsqrt,fma,fsgsbase,fxsr,gfni,hreset,idivq-to-divl,invpcid,kl,lzcnt,macrofusion,mmx,movbe,movdir64b,movdiri,no-bypass-delay-blend,no-bypass-delay-mov,no-bypass-delay-shuffle,nopl,pclmul,pconfig,pku,popcnt,prefer-movmsk-over-vtest,prfchw,ptwrite,rdpid,rdrnd,rdseed,sahf,serialize,sha,shstk,slow-3ops-lea,sse,sse2,sse3,sse4.1,sse4.2,ssse3,tuning-fast-imm-vector-shift,vaes,vpclmulqdq,vzeroupper,waitpkg,widekl,x87,xsave,xsavec,xsaveopt,xsaves") },
 	{ str_lit("amdfam10"), str_lit("64bit,64bit-mode,cmov,cx16,cx8,fast-scalar-shift-masks,fxsr,idivq-to-divl,lzcnt,nopl,popcnt,prfchw,sahf,sbb-dep-breaking,slow-shld,sse,sse2,sse3,sse4a,vzeroupper,x87") },
@@ -557,7 +557,7 @@ gb_global MicroarchFeatureList microarch_features_list[] = {
 };
 #else
 // Generated with the featuregen script in `misc/featuregen`
-gb_global String target_microarch_list[TargetArch_COUNT] = {
+static String target_microarch_list[TargetArch_COUNT] = {
 	// TargetArch_Invalid:
 	str_lit(""),
 	// TargetArch_amd64:
@@ -577,7 +577,7 @@ gb_global String target_microarch_list[TargetArch_COUNT] = {
 };
 
 // Generated with the featuregen script in `misc/featuregen`
-gb_global String target_features_list[TargetArch_COUNT] = {
+static String target_features_list[TargetArch_COUNT] = {
 	// TargetArch_Invalid:
 	str_lit(""),
 	// TargetArch_amd64:
@@ -597,7 +597,7 @@ gb_global String target_features_list[TargetArch_COUNT] = {
 };
 
 // Generated with the featuregen script in `misc/featuregen`
-gb_global int target_microarch_counts[TargetArch_COUNT] = {
+static int target_microarch_counts[TargetArch_COUNT] = {
 	// TargetArch_Invalid:
 	0,
 	// TargetArch_amd64:
@@ -617,7 +617,7 @@ gb_global int target_microarch_counts[TargetArch_COUNT] = {
 };
 
 // Generated with the featuregen script in `misc/featuregen`
-gb_global MicroarchFeatureList microarch_features_list[] = {
+static MicroarchFeatureList microarch_features_list[] = {
 	// TargetArch_amd64:
 	{ str_lit("alderlake"), str_lit("64bit,64bit-mode,adx,aes,allow-light-256-bit,avx,avx2,avxvnni,bmi,bmi2,cldemote,clflushopt,clwb,cmov,crc32,cx16,cx8,f16c,false-deps-perm,false-deps-popcnt,fast-15bytenop,fast-gather,fast-scalar-fsqrt,fast-shld-rotate,fast-variable-crosslane-shuffle,fast-variable-perlane-shuffle,fast-vector-fsqrt,fma,fsgsbase,fxsr,gfni,hreset,idivq-to-divl,invpcid,kl,lzcnt,macrofusion,mmx,movbe,movdir64b,movdiri,no-bypass-delay-blend,no-bypass-delay-mov,no-bypass-delay-shuffle,nopl,pclmul,pconfig,pku,popcnt,prefer-movmsk-over-vtest,prfchw,ptwrite,rdpid,rdrnd,rdseed,sahf,serialize,sha,shstk,slow-3ops-lea,sse,sse2,sse3,sse4.1,sse4.2,ssse3,tuning-fast-imm-vector-shift,vaes,vpclmulqdq,vzeroupper,waitpkg,widekl,x87,xsave,xsavec,xsaveopt,xsaves") },
 	{ str_lit("amdfam10"), str_lit("3dnow,3dnowa,64bit,64bit-mode,cmov,cx16,cx8,fast-scalar-shift-masks,fxsr,lzcnt,mmx,nopl,popcnt,prfchw,sahf,sbb-dep-breaking,slow-shld,sse,sse2,sse3,sse4a,vzeroupper,x87") },

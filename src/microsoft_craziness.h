@@ -45,7 +45,7 @@
 //
 // Here is the API you need to know about:
 //
-gb_global gbAllocator mc_allocator = permanent_allocator();
+static gbAllocator mc_allocator = permanent_allocator();
 
 struct Find_Result {
 	int windows_sdk_version;   // Zero if no Windows SDK found.
@@ -58,36 +58,36 @@ struct Find_Result {
 	String vs_library_path;
 };
 
-gb_internal String mc_wstring_to_string(wchar_t const *str) {
+static String mc_wstring_to_string(wchar_t const *str) {
 	return string16_to_string(mc_allocator, make_string16_c(str));
 }
 
-gb_internal String16 mc_string_to_wstring(String str) {
+static String16 mc_string_to_wstring(String str) {
 	return string_to_string16(mc_allocator, str);
 }
 
-gb_internal String mc_concat(String a, String b) {
+static String mc_concat(String a, String b) {
 	return concatenate_strings(mc_allocator, a, b);
 }
 
-gb_internal String mc_concat(String a, String b, String c) {
+static String mc_concat(String a, String b, String c) {
 	return concatenate3_strings(mc_allocator, a, b, c);
 }
 
-gb_internal String mc_concat(String a, String b, String c, String d) {
+static String mc_concat(String a, String b, String c, String d) {
 	return concatenate4_strings(mc_allocator, a, b, c, d);
 }
 
-gb_internal String mc_get_env(String key) {
+static String mc_get_env(String key) {
 	char const * value = gb_get_env((char const *)key.text, mc_allocator);
 	return make_string_c(value);
 }
 
-gb_internal void mc_free(String str) {
+static void mc_free(String str) {
 	if (str.len) gb_free(mc_allocator, str.text);
 }
 
-gb_internal void mc_free(String16 str) {
+static void mc_free(String16 str) {
 	if (str.len) gb_free(mc_allocator, str.text);
 }
 
@@ -97,7 +97,7 @@ typedef struct _MC_Find_Data {
 } MC_Find_Data;
 
 
-gb_internal HANDLE mc_find_first(String wildcard, MC_Find_Data *find_data) {
+static HANDLE mc_find_first(String wildcard, MC_Find_Data *find_data) {
  	WIN32_FIND_DATAW _find_data;
 
  	String16 wildcard_wide = mc_string_to_wstring(wildcard);
@@ -111,7 +111,7 @@ gb_internal HANDLE mc_find_first(String wildcard, MC_Find_Data *find_data) {
  	return handle;
 }
 
-gb_internal bool mc_find_next(HANDLE handle, MC_Find_Data *find_data) {
+static bool mc_find_next(HANDLE handle, MC_Find_Data *find_data) {
  	WIN32_FIND_DATAW _find_data;
  	bool success = !!FindNextFileW(handle, &_find_data);
 
@@ -120,7 +120,7 @@ gb_internal bool mc_find_next(HANDLE handle, MC_Find_Data *find_data) {
  	return success;
 }
 
-gb_internal void mc_find_close(HANDLE handle) {
+static void mc_find_close(HANDLE handle) {
 	FindClose(handle);
 }
 
@@ -212,7 +212,7 @@ struct Version_Data {
 };
 
 typedef void (*MC_Visit_Proc)(String short_name, String full_name, Version_Data *data);
-gb_internal bool mc_visit_files(String dir_name, Version_Data *data, MC_Visit_Proc proc) {
+static bool mc_visit_files(String dir_name, Version_Data *data, MC_Visit_Proc proc) {
 
 	// Visit everything in one folder (non-recursively). If it's a directory
 	// that doesn't start with ".", call the visit proc on it. The visit proc
@@ -242,7 +242,7 @@ gb_internal bool mc_visit_files(String dir_name, Version_Data *data, MC_Visit_Pr
 	return true;
 }
 
-gb_internal String find_windows_kit_root(HKEY key, String const version) {
+static String find_windows_kit_root(HKEY key, String const version) {
 	// Given a key to an already opened registry entry,
 	// get the value stored under the 'version' subkey.
 	// If that's not the right terminology, hey, I never do registry stuff.
@@ -271,7 +271,7 @@ gb_internal String find_windows_kit_root(HKEY key, String const version) {
 	return value;
 }
 
-gb_internal void win10_best(String short_name, String full_name, Version_Data *data) {
+static void win10_best(String short_name, String full_name, Version_Data *data) {
 	// Find the Windows 10 subdirectory with the highest version number.
 
 	int i0, i1, i2, i3;
@@ -303,7 +303,7 @@ gb_internal void win10_best(String short_name, String full_name, Version_Data *d
 	}
 }
 
-gb_internal void find_windows_kit_paths(Find_Result *result) {
+static void find_windows_kit_paths(Find_Result *result) {
 	bool sdk_found = false;
 
 	HKEY main_key;
@@ -351,7 +351,7 @@ gb_internal void find_windows_kit_paths(Find_Result *result) {
 	}
 }
 
-gb_internal bool find_visual_studio_by_fighting_through_microsoft_craziness(Find_Result *result) {
+static bool find_visual_studio_by_fighting_through_microsoft_craziness(Find_Result *result) {
 	// The name of this procedure is kind of cryptic. Its purpose is
 	// to fight through Microsoft craziness. The things that the fine
 	// Visual Studio team want you to do, JUST TO FIND A SINGLE FOLDER
@@ -515,7 +515,7 @@ gb_internal bool find_visual_studio_by_fighting_through_microsoft_craziness(Find
 
 // NOTE(WalterPlinge): Environment variables can help to find Visual C++ and WinSDK paths for both
 // official and portable installations (like mmozeiko's portable msvc script).
-gb_internal void find_windows_kit_paths_from_env_vars(Find_Result *result) {
+static void find_windows_kit_paths_from_env_vars(Find_Result *result) {
 	if (build_context.metrics.arch != TargetArch_amd64 && build_context.metrics.arch != TargetArch_i386) {
 		return;
 	}
@@ -577,7 +577,7 @@ gb_internal void find_windows_kit_paths_from_env_vars(Find_Result *result) {
 		} else if (build_context.metrics.arch == TargetArch_i386) {
 			result->windows_sdk_bin_path = mc_concat(bin, str_lit("x86\\"));
 			sdk_bin_found = true;
-		} 
+		}
 	}
 
 	// NOTE(WalterPlinge): If any combination is found, let's just assume they are correct
@@ -665,7 +665,7 @@ gb_internal void find_windows_kit_paths_from_env_vars(Find_Result *result) {
 // NOTE(WalterPlinge): Environment variables can help to find Visual C++ and WinSDK paths for both
 // official and portable installations (like mmozeiko's portable msvc script). This will only use
 // the first paths it finds, and won't overwrite any values that `result` already has.
-gb_internal void find_visual_studio_paths_from_env_vars(Find_Result *result) {
+static void find_visual_studio_paths_from_env_vars(Find_Result *result) {
 	if (build_context.metrics.arch != TargetArch_amd64 && build_context.metrics.arch != TargetArch_i386) {
 		return;
 	}
@@ -758,7 +758,7 @@ gb_internal void find_visual_studio_paths_from_env_vars(Find_Result *result) {
 	}
 }
 
-gb_internal Find_Result find_visual_studio_and_windows_sdk() {
+static Find_Result find_visual_studio_and_windows_sdk() {
 	Find_Result r = {};
 	find_windows_kit_paths(&r);
 	find_visual_studio_by_fighting_through_microsoft_craziness(&r);
@@ -768,7 +768,7 @@ gb_internal Find_Result find_visual_studio_and_windows_sdk() {
 		r.windows_sdk_um_library_path.len   &&
 		r.windows_sdk_ucrt_library_path.len ;
 
-	bool vs_found = 
+	bool vs_found =
 		r.vs_exe_path.len                   &&
 		r.vs_library_path.len               ;
 

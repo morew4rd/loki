@@ -23,36 +23,36 @@ struct Array {
 	}
 };
 
-template <typename T> gb_internal void     array_init          (Array<T> *array, gbAllocator const &a);
-template <typename T> gb_internal void     array_init          (Array<T> *array, gbAllocator const &a, isize count);
-template <typename T> gb_internal void     array_init          (Array<T> *array, gbAllocator const &a, isize count, isize capacity);
-template <typename T> gb_internal Array<T> array_make          (gbAllocator const &a);
-template <typename T> gb_internal Array<T> array_make          (gbAllocator const &a, isize count);
-template <typename T> gb_internal Array<T> array_make          (gbAllocator const &a, isize count, isize capacity);
-template <typename T> gb_internal Array<T> array_make_from_ptr (T *data, isize count, isize capacity);
-template <typename T> gb_internal void     array_free          (Array<T> *array);
-template <typename T> gb_internal void     array_add           (Array<T> *array, T const &t);
-template <typename T> gb_internal T *      array_add_and_get   (Array<T> *array);
-template <typename T> gb_internal void     array_add_elems     (Array<T> *array, T const *elems, isize elem_count);
-template <typename T> gb_internal T        array_pop           (Array<T> *array);
-template <typename T> gb_internal void     array_clear         (Array<T> *array);
-template <typename T> gb_internal void     array_reserve       (Array<T> *array, isize capacity);
-template <typename T> gb_internal void     array_resize        (Array<T> *array, isize count);
-template <typename T> gb_internal void     array_set_capacity  (Array<T> *array, isize capacity);
-template <typename T> gb_internal Array<T> array_slice         (Array<T> const &array, isize lo, isize hi);
-template <typename T> gb_internal Array<T> array_clone         (gbAllocator const &a, Array<T> const &array);
+template <typename T> static void     array_init          (Array<T> *array, gbAllocator const &a);
+template <typename T> static void     array_init          (Array<T> *array, gbAllocator const &a, isize count);
+template <typename T> static void     array_init          (Array<T> *array, gbAllocator const &a, isize count, isize capacity);
+template <typename T> static Array<T> array_make          (gbAllocator const &a);
+template <typename T> static Array<T> array_make          (gbAllocator const &a, isize count);
+template <typename T> static Array<T> array_make          (gbAllocator const &a, isize count, isize capacity);
+template <typename T> static Array<T> array_make_from_ptr (T *data, isize count, isize capacity);
+template <typename T> static void     array_free          (Array<T> *array);
+template <typename T> static void     array_add           (Array<T> *array, T const &t);
+template <typename T> static T *      array_add_and_get   (Array<T> *array);
+template <typename T> static void     array_add_elems     (Array<T> *array, T const *elems, isize elem_count);
+template <typename T> static T        array_pop           (Array<T> *array);
+template <typename T> static void     array_clear         (Array<T> *array);
+template <typename T> static void     array_reserve       (Array<T> *array, isize capacity);
+template <typename T> static void     array_resize        (Array<T> *array, isize count);
+template <typename T> static void     array_set_capacity  (Array<T> *array, isize capacity);
+template <typename T> static Array<T> array_slice         (Array<T> const &array, isize lo, isize hi);
+template <typename T> static Array<T> array_clone         (gbAllocator const &a, Array<T> const &array);
 
-template <typename T> gb_internal void array_ordered_remove  (Array<T> *array, isize index);
-template <typename T> gb_internal void array_unordered_remove(Array<T> *array, isize index);
+template <typename T> static void array_ordered_remove  (Array<T> *array, isize index);
+template <typename T> static void array_unordered_remove(Array<T> *array, isize index);
 
-template <typename T> gb_internal void array_copy(Array<T> *array, Array<T> const &data, isize offset);
-template <typename T> gb_internal void array_copy(Array<T> *array, Array<T> const &data, isize offset, isize count);
+template <typename T> static void array_copy(Array<T> *array, Array<T> const &data, isize offset);
+template <typename T> static void array_copy(Array<T> *array, Array<T> const &data, isize offset, isize count);
 
-template <typename T> gb_internal T *array_end_ptr(Array<T> *array);
+template <typename T> static T *array_end_ptr(Array<T> *array);
 
 
 template <typename T>
-gb_internal void array_sort(Array<T> &array, gbCompareProc compare_proc) {
+static void array_sort(Array<T> &array, gbCompareProc compare_proc) {
 	gb_sort_array(array.data, array.count, compare_proc);
 }
 
@@ -78,12 +78,12 @@ struct Slice {
 	}
 };
 
-template <typename T> gb_internal Slice<T> slice_from_array(Array<T> const &a);
+template <typename T> static Slice<T> slice_from_array(Array<T> const &a);
 
 
 
 template <typename T>
-gb_internal Slice<T> slice_make(gbAllocator const &allocator, isize count) {
+static Slice<T> slice_make(gbAllocator const &allocator, isize count) {
 	GB_ASSERT(count >= 0);
 	Slice<T> s = {};
 	s.data = gb_alloc_array(allocator, T, count);
@@ -95,7 +95,7 @@ gb_internal Slice<T> slice_make(gbAllocator const &allocator, isize count) {
 }
 
 template <typename T>
-gb_internal void slice_init(Slice<T> *s, gbAllocator const &allocator, isize count) {
+static void slice_init(Slice<T> *s, gbAllocator const &allocator, isize count) {
 	GB_ASSERT(count >= 0);
 	s->data = gb_alloc_array(allocator, T, count);
 	if (count > 0) {
@@ -105,23 +105,23 @@ gb_internal void slice_init(Slice<T> *s, gbAllocator const &allocator, isize cou
 }
 
 template <typename T>
-gb_internal void slice_free(Slice<T> *s, gbAllocator const &allocator) {
+static void slice_free(Slice<T> *s, gbAllocator const &allocator) {
 	gb_free(allocator, s->data);
 }
 
 template <typename T>
-gb_internal void slice_resize(Slice<T> *s, gbAllocator const &allocator, isize new_count) {
+static void slice_resize(Slice<T> *s, gbAllocator const &allocator, isize new_count) {
 	resize_array_raw(&s->data, allocator, s->count, new_count);
 	s->count = new_count;
 }
 
 
 template <typename T>
-gb_internal Slice<T> slice_from_array(Array<T> const &a) {
+static Slice<T> slice_from_array(Array<T> const &a) {
 	return {a.data, a.count};
 }
 template <typename T>
-gb_internal Slice<T> slice_array(Array<T> const &array, isize lo, isize hi) {
+static Slice<T> slice_array(Array<T> const &array, isize lo, isize hi) {
 	GB_ASSERT(0 <= lo && lo <= hi && hi <= array.count);
 	Slice<T> out = {};
 	isize len = hi-lo;
@@ -134,30 +134,30 @@ gb_internal Slice<T> slice_array(Array<T> const &array, isize lo, isize hi) {
 
 
 template <typename T>
-gb_internal Slice<T> slice_clone(gbAllocator const &allocator, Slice<T> const &a) {
+static Slice<T> slice_clone(gbAllocator const &allocator, Slice<T> const &a) {
 	T *data = cast(T *)gb_alloc_copy_align(allocator, a.data, a.count*gb_size_of(T), gb_align_of(T));
 	return {data, a.count};
 }
 
 template <typename T>
-gb_internal Slice<T> slice_clone_from_array(gbAllocator const &allocator, Array<T> const &a) {
+static Slice<T> slice_clone_from_array(gbAllocator const &allocator, Array<T> const &a) {
 	auto c = array_clone(allocator, a);
 	return {c.data, c.count};
 }
 
 
 template <typename T>
-gb_internal void slice_copy(Slice<T> *slice, Slice<T> const &data) {
+static void slice_copy(Slice<T> *slice, Slice<T> const &data) {
 	isize n = gb_min(slice->count, data.count);
 	gb_memmove(slice->data, data.data, gb_size_of(T)*n);
 }
 template <typename T>
-gb_internal void slice_copy(Slice<T> *slice, Slice<T> const &data, isize offset) {
+static void slice_copy(Slice<T> *slice, Slice<T> const &data, isize offset) {
 	isize n = gb_clamp(slice->count-offset, 0, data.count);
 	gb_memmove(slice->data+offset, data.data, gb_size_of(T)*n);
 }
 template <typename T>
-gb_internal void slice_copy(Slice<T> *slice, Slice<T> const &data, isize offset, isize count) {
+static void slice_copy(Slice<T> *slice, Slice<T> const &data, isize offset, isize count) {
 	isize n = gb_clamp(slice->count-offset, 0, gb_min(data.count, count));
 	gb_memmove(slice->data+offset, data.data, gb_size_of(T)*n);
 }
@@ -165,7 +165,7 @@ gb_internal void slice_copy(Slice<T> *slice, Slice<T> const &data, isize offset,
 
 
 template <typename T>
-gb_internal gb_inline Slice<T> slice(Slice<T> const &array, isize lo, isize hi) {
+static gb_inline Slice<T> slice(Slice<T> const &array, isize lo, isize hi) {
 	GB_ASSERT(0 <= lo && lo <= hi && hi <= array.count);
 	Slice<T> out = {};
 	isize len = hi-lo;
@@ -176,7 +176,7 @@ gb_internal gb_inline Slice<T> slice(Slice<T> const &array, isize lo, isize hi) 
 	return out;
 }
 template <typename T>
-gb_internal gb_inline Slice<T> slice(Array<T> const &array, isize lo, isize hi) {
+static gb_inline Slice<T> slice(Array<T> const &array, isize lo, isize hi) {
 	GB_ASSERT(0 <= lo && lo <= hi && hi <= array.count);
 	Slice<T> out = {};
 	isize len = hi-lo;
@@ -189,7 +189,7 @@ gb_internal gb_inline Slice<T> slice(Array<T> const &array, isize lo, isize hi) 
 
 
 template <typename T>
-gb_internal void slice_ordered_remove(Slice<T> *array, isize index) {
+static void slice_ordered_remove(Slice<T> *array, isize index) {
 	GB_ASSERT(0 <= index && index < array->count);
 
 	isize bytes = gb_size_of(T) * (array->count-(index+1));
@@ -198,7 +198,7 @@ gb_internal void slice_ordered_remove(Slice<T> *array, isize index) {
 }
 
 template <typename T>
-gb_internal void slice_unordered_remove(Slice<T> *array, isize index) {
+static void slice_unordered_remove(Slice<T> *array, isize index) {
 	GB_ASSERT(0 <= index && index < array->count);
 
 	isize n = array->count-1;
@@ -210,18 +210,18 @@ gb_internal void slice_unordered_remove(Slice<T> *array, isize index) {
 
 
 template <typename T>
-gb_internal void array_copy(Array<T> *array, Array<T> const &data, isize offset) {
+static void array_copy(Array<T> *array, Array<T> const &data, isize offset) {
 	gb_memmove(array->data+offset, data.data, gb_size_of(T)*data.count);
 }
 template <typename T>
-gb_internal void array_copy(Array<T> *array, Array<T> const &data, isize offset, isize count) {
+static void array_copy(Array<T> *array, Array<T> const &data, isize offset, isize count) {
 	gb_memmove(array->data+offset, data.data, gb_size_of(T)*gb_min(data.count, count));
 }
 
 
 
 template <typename T>
-gb_internal T *array_end_ptr(Array<T> *array) {
+static T *array_end_ptr(Array<T> *array) {
 	if (array->count > 0) {
 		return &array->data[array->count-1];
 	}
@@ -230,18 +230,18 @@ gb_internal T *array_end_ptr(Array<T> *array) {
 
 
 template <typename T>
-gb_internal gb_inline void array_init(Array<T> *array, gbAllocator const &a) {
+static gb_inline void array_init(Array<T> *array, gbAllocator const &a) {
 	isize cap = ARRAY_GROW_FORMULA(0);
 	array_init(array, a, 0, cap);
 }
 
 template <typename T>
-gb_internal gb_inline void array_init(Array<T> *array, gbAllocator const &a, isize count) {
+static gb_inline void array_init(Array<T> *array, gbAllocator const &a, isize count) {
 	array_init(array, a, count, count);
 }
 
 template <typename T>
-gb_internal gb_inline void array_init(Array<T> *array, gbAllocator const &a, isize count, isize capacity) {
+static gb_inline void array_init(Array<T> *array, gbAllocator const &a, isize count, isize capacity) {
 	array->allocator = a;
 	array->data = nullptr;
 	if (capacity > 0) {
@@ -254,7 +254,7 @@ gb_internal gb_inline void array_init(Array<T> *array, gbAllocator const &a, isi
 
 
 template <typename T>
-gb_internal gb_inline Array<T> array_make_from_ptr(T *data, isize count, isize capacity) {
+static gb_inline Array<T> array_make_from_ptr(T *data, isize count, isize capacity) {
 	Array<T> a = {0};
 	a.data = data;
 	a.count = count;
@@ -264,7 +264,7 @@ gb_internal gb_inline Array<T> array_make_from_ptr(T *data, isize count, isize c
 
 
 template <typename T>
-gb_internal gb_inline Array<T> array_make(gbAllocator const &a) {
+static gb_inline Array<T> array_make(gbAllocator const &a) {
 	isize capacity = ARRAY_GROW_FORMULA(0);
 	Array<T> array = {};
 	array.allocator = a;
@@ -274,7 +274,7 @@ gb_internal gb_inline Array<T> array_make(gbAllocator const &a) {
 	return array;
 }
 template <typename T>
-gb_internal gb_inline Array<T> array_make(gbAllocator const &a, isize count) {
+static gb_inline Array<T> array_make(gbAllocator const &a, isize count) {
 	Array<T> array = {};
 	array.allocator = a;
 	array.data = gb_alloc_array(a, T, count);
@@ -283,7 +283,7 @@ gb_internal gb_inline Array<T> array_make(gbAllocator const &a, isize count) {
 	return array;
 }
 template <typename T>
-gb_internal gb_inline Array<T> array_make(gbAllocator const &a, isize count, isize capacity) {
+static gb_inline Array<T> array_make(gbAllocator const &a, isize count, isize capacity) {
 	Array<T> array = {};
 	array.allocator = a;
 	array.data = gb_alloc_array(a, T, capacity);
@@ -295,7 +295,7 @@ gb_internal gb_inline Array<T> array_make(gbAllocator const &a, isize count, isi
 
 
 template <typename T>
-gb_internal gb_inline void array_free(Array<T> *array) {
+static gb_inline void array_free(Array<T> *array) {
 	if (array->allocator.proc != nullptr) {
 		gb_free(array->allocator, array->data);
 	}
@@ -304,7 +304,7 @@ gb_internal gb_inline void array_free(Array<T> *array) {
 }
 
 template <typename T>
-gb_internal void array__grow(Array<T> *array, isize min_capacity) {
+static void array__grow(Array<T> *array, isize min_capacity) {
 	isize new_capacity = ARRAY_GROW_FORMULA(array->capacity);
 	if (new_capacity < min_capacity) {
 		new_capacity = min_capacity;
@@ -313,7 +313,7 @@ gb_internal void array__grow(Array<T> *array, isize min_capacity) {
 }
 
 template <typename T>
-gb_internal void array_add(Array<T> *array, T const &t) {
+static void array_add(Array<T> *array, T const &t) {
 	if (array->capacity < array->count+1) {
 		array__grow(array, 0);
 	}
@@ -321,7 +321,7 @@ gb_internal void array_add(Array<T> *array, T const &t) {
 	array->count++;
 }
 
-gb_internal void array_add(Array<char const *> *array, char const *t) {
+static void array_add(Array<char const *> *array, char const *t) {
 	if (array->capacity < array->count+1) {
 		array__grow(array, 0);
 	}
@@ -330,7 +330,7 @@ gb_internal void array_add(Array<char const *> *array, char const *t) {
 }
 
 template <typename T>
-gb_internal T *array_add_and_get(Array<T> *array) {
+static T *array_add_and_get(Array<T> *array) {
 	if (array->count < array->capacity) {
 		return &array->data[array->count++];
 	}
@@ -342,7 +342,7 @@ gb_internal T *array_add_and_get(Array<T> *array) {
 
 
 template <typename T>
-gb_internal void array_add_elems(Array<T> *array, T const *elems, isize elem_count) {
+static void array_add_elems(Array<T> *array, T const *elems, isize elem_count) {
 	GB_ASSERT(elem_count >= 0);
 	if (array->capacity < array->count+elem_count) {
 		array__grow(array, array->count+elem_count);
@@ -353,26 +353,26 @@ gb_internal void array_add_elems(Array<T> *array, T const *elems, isize elem_cou
 
 
 template <typename T>
-gb_internal gb_inline T array_pop(Array<T> *array) {
+static gb_inline T array_pop(Array<T> *array) {
 	GB_ASSERT(array->count > 0);
 	array->count--;
 	return array->data[array->count];
 }
 
 template <typename T>
-gb_internal void array_clear(Array<T> *array) {
+static void array_clear(Array<T> *array) {
 	array->count = 0;
 }
 
 template <typename T>
-gb_internal void array_reserve(Array<T> *array, isize capacity) {
+static void array_reserve(Array<T> *array, isize capacity) {
 	if (array->capacity < capacity) {
 		array_set_capacity(array, capacity);
 	}
 }
 
 template <typename T>
-gb_internal void array_resize(Array<T> *array, isize count) {
+static void array_resize(Array<T> *array, isize count) {
 	if (array->capacity < count) {
 		array__grow(array, count);
 	}
@@ -380,7 +380,7 @@ gb_internal void array_resize(Array<T> *array, isize count) {
 }
 
 template <typename T>
-gb_internal void array_set_capacity(Array<T> *array, isize capacity) {
+static void array_set_capacity(Array<T> *array, isize capacity) {
 	if (capacity == array->capacity) {
 		return;
 	}
@@ -409,7 +409,7 @@ gb_internal void array_set_capacity(Array<T> *array, isize capacity) {
 
 
 template <typename T>
-gb_internal gb_inline Array<T> array_slice(Array<T> const &array, isize lo, isize hi) {
+static gb_inline Array<T> array_slice(Array<T> const &array, isize lo, isize hi) {
 	GB_ASSERT(0 <= lo && lo <= hi && hi <= array.count);
 	Array<T> out = {};
 	isize len = hi-lo;
@@ -422,7 +422,7 @@ gb_internal gb_inline Array<T> array_slice(Array<T> const &array, isize lo, isiz
 }
 
 template <typename T>
-gb_internal Array<T> array_clone(gbAllocator const &allocator, Array<T> const &array) {
+static Array<T> array_clone(gbAllocator const &allocator, Array<T> const &array) {
 	auto clone = array_make<T>(allocator, array.count, array.count);
 	array_copy(&clone, array, 0);
 	return clone;
@@ -430,7 +430,7 @@ gb_internal Array<T> array_clone(gbAllocator const &allocator, Array<T> const &a
 
 
 template <typename T>
-gb_internal void array_ordered_remove(Array<T> *array, isize index) {
+static void array_ordered_remove(Array<T> *array, isize index) {
 	GB_ASSERT(0 <= index && index < array->count);
 
 	isize bytes = gb_size_of(T) * (array->count-(index+1));
@@ -439,7 +439,7 @@ gb_internal void array_ordered_remove(Array<T> *array, isize index) {
 }
 
 template <typename T>
-gb_internal void array_unordered_remove(Array<T> *array, isize index) {
+static void array_unordered_remove(Array<T> *array, isize index) {
 	GB_ASSERT(0 <= index && index < array->count);
 
 	isize n = array->count-1;
@@ -452,35 +452,35 @@ gb_internal void array_unordered_remove(Array<T> *array, isize index) {
 
 
 template <typename T>
-gb_internal T *begin(Array<T> &array) {
+static T *begin(Array<T> &array) {
 	return array.data;
 }
 template <typename T>
-gb_internal T const *begin(Array<T> const &array) {
+static T const *begin(Array<T> const &array) {
 	return array.data;
 }
 template <typename T>
-gb_internal T *end(Array<T> &array) {
+static T *end(Array<T> &array) {
 	return array.data + array.count;
 }
 template <typename T>
-gb_internal T const *end(Array<T> const &array) {
+static T const *end(Array<T> const &array) {
 	return array.data + array.count;
 }
 
 template <typename T>
-gb_internal T *begin(Slice<T> &array) {
+static T *begin(Slice<T> &array) {
 	return array.data;
 }
 template <typename T>
-gb_internal T const *begin(Slice<T> const &array) {
+static T const *begin(Slice<T> const &array) {
 	return array.data;
 }
 template <typename T>
-gb_internal T *end(Slice<T> &array) {
+static T *end(Slice<T> &array) {
 	return array.data + array.count;
 }
 template <typename T>
-gb_internal T const *end(Slice<T> const &array) {
+static T const *end(Slice<T> const &array) {
 	return array.data + array.count;
 }

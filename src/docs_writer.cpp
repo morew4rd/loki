@@ -11,12 +11,12 @@ enum OdinDocWriterState {
 	OdinDocWriterState_Writing,
 };
 
-gb_global char const* OdinDocWriterState_strings[] {
+static char const* OdinDocWriterState_strings[] {
 	"preparing",
 	"writing  ",
 };
 
-gb_global std::atomic<bool> g_in_doc_writer;
+static std::atomic<bool> g_in_doc_writer;
 
 struct OdinDocWriter {
 	CheckerInfo *info;
@@ -42,17 +42,17 @@ struct OdinDocWriter {
 	OdinDocWriterItemTracker<u8> blob;
 };
 
-gb_internal OdinDocEntityIndex odin_doc_add_entity(OdinDocWriter *w, Entity *e);
-gb_internal OdinDocTypeIndex odin_doc_type(OdinDocWriter *w, Type *type);
+static OdinDocEntityIndex odin_doc_add_entity(OdinDocWriter *w, Entity *e);
+static OdinDocTypeIndex odin_doc_type(OdinDocWriter *w, Type *type);
 
 template <typename T>
-gb_internal void odin_doc_writer_item_tracker_init(OdinDocWriterItemTracker<T> *t, isize size) {
+static void odin_doc_writer_item_tracker_init(OdinDocWriterItemTracker<T> *t, isize size) {
 	t->len = size;
 	t->cap = size;
 }
 
 
-gb_internal void odin_doc_writer_prepare(OdinDocWriter *w) {
+static void odin_doc_writer_prepare(OdinDocWriter *w) {
 	debugf("odin_doc_writer_prepare\n");
 	w->state = OdinDocWriterState_Preparing;
 
@@ -72,7 +72,7 @@ gb_internal void odin_doc_writer_prepare(OdinDocWriter *w) {
 }
 
 
-gb_internal void odin_doc_writer_destroy(OdinDocWriter *w) {
+static void odin_doc_writer_destroy(OdinDocWriter *w) {
 	debugf("odin_doc_writer_destroy\n");
 	gb_free(heap_allocator(), w->data);
 
@@ -86,7 +86,7 @@ gb_internal void odin_doc_writer_destroy(OdinDocWriter *w) {
 
 
 template <typename T>
-gb_internal void odin_doc_writer_tracker_size(isize *offset, OdinDocWriterItemTracker<T> *t, isize alignment=1) {
+static void odin_doc_writer_tracker_size(isize *offset, OdinDocWriterItemTracker<T> *t, isize alignment=1) {
 	isize size = t->cap*gb_size_of(T);
 	isize align = gb_max(gb_align_of(T), alignment);
 	*offset = align_formula_isize(*offset, align);
@@ -94,7 +94,7 @@ gb_internal void odin_doc_writer_tracker_size(isize *offset, OdinDocWriterItemTr
 	*offset += size;
 }
 
-gb_internal isize odin_doc_writer_calc_total_size(OdinDocWriter *w) {
+static isize odin_doc_writer_calc_total_size(OdinDocWriter *w) {
 	isize total_size = gb_size_of(OdinDocHeader);
 	odin_doc_writer_tracker_size(&total_size, &w->files);
 	odin_doc_writer_tracker_size(&total_size, &w->pkgs);
@@ -105,7 +105,7 @@ gb_internal isize odin_doc_writer_calc_total_size(OdinDocWriter *w) {
 	return total_size;
 }
 
-gb_internal void odin_doc_writer_start_writing(OdinDocWriter *w) {
+static void odin_doc_writer_start_writing(OdinDocWriter *w) {
 	debugf("odin_doc_writer_start_writing\n");
 	w->state = OdinDocWriterState_Writing;
 
@@ -122,7 +122,7 @@ gb_internal void odin_doc_writer_start_writing(OdinDocWriter *w) {
 	w->header = cast(OdinDocHeader *)w->data;
 }
 
-gb_internal u32 hash_data_after_header(OdinDocHeaderBase *base, void *data, isize data_len) {
+static u32 hash_data_after_header(OdinDocHeaderBase *base, void *data, isize data_len) {
 	u8 *start = cast(u8 *)data;
 	u8 *end = start + base->total_size;
 	start += base->header_size;
@@ -136,13 +136,13 @@ gb_internal u32 hash_data_after_header(OdinDocHeaderBase *base, void *data, isiz
 
 
 template <typename T>
-gb_internal void odin_doc_writer_assign_tracker(OdinDocArray<T> *array, OdinDocWriterItemTracker<T> const &t) {
+static void odin_doc_writer_assign_tracker(OdinDocArray<T> *array, OdinDocWriterItemTracker<T> const &t) {
 	array->offset = cast(u32)t.offset;
 	array->length = cast(u32)t.len;
 }
 
 
-gb_internal void odin_doc_writer_end_writing(OdinDocWriter *w) {
+static void odin_doc_writer_end_writing(OdinDocWriter *w) {
 	debugf("odin_doc_writer_end_writing\n");
 	OdinDocHeader *h = w->header;
 
@@ -161,7 +161,7 @@ gb_internal void odin_doc_writer_end_writing(OdinDocWriter *w) {
 }
 
 template <typename T>
-gb_internal u32 odin_doc_write_item(OdinDocWriter *w, OdinDocWriterItemTracker<T> *t, T const *item, T **dst=nullptr) {
+static u32 odin_doc_write_item(OdinDocWriter *w, OdinDocWriterItemTracker<T> *t, T const *item, T **dst=nullptr) {
 	if (w->state == OdinDocWriterState_Preparing) {
 		t->cap += 1;
 		if (dst) *dst = nullptr;
@@ -180,7 +180,7 @@ gb_internal u32 odin_doc_write_item(OdinDocWriter *w, OdinDocWriterItemTracker<T
 }
 
 template <typename T>
-gb_internal T *odin_doc_get_item(OdinDocWriter *w, OdinDocWriterItemTracker<T> *t, u32 index) {
+static T *odin_doc_get_item(OdinDocWriter *w, OdinDocWriterItemTracker<T> *t, u32 index) {
 	if (w->state != OdinDocWriterState_Writing) {
 		return nullptr;
 	}
@@ -189,7 +189,7 @@ gb_internal T *odin_doc_get_item(OdinDocWriter *w, OdinDocWriterItemTracker<T> *
 	return cast(T *)data;
 }
 
-gb_internal OdinDocString odin_doc_write_string_without_cache(OdinDocWriter *w, String const &str) {
+static OdinDocString odin_doc_write_string_without_cache(OdinDocWriter *w, String const &str) {
 	OdinDocString res = {};
 
 	if (w->state == OdinDocWriterState_Preparing) {
@@ -209,7 +209,7 @@ gb_internal OdinDocString odin_doc_write_string_without_cache(OdinDocWriter *w, 
 	return res;
 }
 
-gb_internal OdinDocString odin_doc_write_string(OdinDocWriter *w, String const &str) {
+static OdinDocString odin_doc_write_string(OdinDocWriter *w, String const &str) {
 	OdinDocString *c = string_map_get(&w->string_cache, str);
 	if (c != nullptr) {
 		if (w->state == OdinDocWriterState_Writing) {
@@ -228,7 +228,7 @@ gb_internal OdinDocString odin_doc_write_string(OdinDocWriter *w, String const &
 
 
 template <typename T>
-gb_internal OdinDocArray<T> odin_write_slice(OdinDocWriter *w, T *data, isize len) {
+static OdinDocArray<T> odin_write_slice(OdinDocWriter *w, T *data, isize len) {
 	GB_ASSERT(gb_align_of(T) <= 4);
 	if (len <= 0) {
 		return {0, 0};
@@ -254,12 +254,12 @@ gb_internal OdinDocArray<T> odin_write_slice(OdinDocWriter *w, T *data, isize le
 
 
 template <typename T>
-gb_internal OdinDocArray<T> odin_write_item_as_slice(OdinDocWriter *w, T data) {
+static OdinDocArray<T> odin_write_item_as_slice(OdinDocWriter *w, T data) {
 	return odin_write_slice(w, &data, 1);
 }
 
 
-gb_internal OdinDocPosition odin_doc_token_pos_cast(OdinDocWriter *w, TokenPos const &pos) {
+static OdinDocPosition odin_doc_token_pos_cast(OdinDocWriter *w, TokenPos const &pos) {
 	OdinDocFileIndex file_index = 0;
 	if (pos.file_id != 0) {
 		AstFile *file = global_files[pos.file_id];
@@ -278,7 +278,7 @@ gb_internal OdinDocPosition odin_doc_token_pos_cast(OdinDocWriter *w, TokenPos c
 	return doc_pos;
 }
 
-gb_internal bool odin_doc_append_comment_group_string(Array<u8> *buf, CommentGroup *g) {
+static bool odin_doc_append_comment_group_string(Array<u8> *buf, CommentGroup *g) {
 	if (g == nullptr) {
 		return false;
 	}
@@ -366,7 +366,7 @@ gb_internal bool odin_doc_append_comment_group_string(Array<u8> *buf, CommentGro
 	return false;
 }
 
-gb_internal OdinDocString odin_doc_pkg_doc_string(OdinDocWriter *w, AstPackage *pkg) {
+static OdinDocString odin_doc_pkg_doc_string(OdinDocWriter *w, AstPackage *pkg) {
 	if (pkg == nullptr) {
 		return {};
 	}
@@ -383,7 +383,7 @@ gb_internal OdinDocString odin_doc_pkg_doc_string(OdinDocWriter *w, AstPackage *
 	return odin_doc_write_string_without_cache(w, make_string(buf.data, buf.count));
 }
 
-gb_internal OdinDocString odin_doc_comment_group_string(OdinDocWriter *w, CommentGroup *g) {
+static OdinDocString odin_doc_comment_group_string(OdinDocWriter *w, CommentGroup *g) {
 	if (g == nullptr) {
 		return {};
 	}
@@ -394,7 +394,7 @@ gb_internal OdinDocString odin_doc_comment_group_string(OdinDocWriter *w, Commen
 	return odin_doc_write_string_without_cache(w, make_string(buf.data, buf.count));
 }
 
-gb_internal OdinDocString odin_doc_expr_string(OdinDocWriter *w, Ast *expr) {
+static OdinDocString odin_doc_expr_string(OdinDocWriter *w, Ast *expr) {
 	if (expr == nullptr) {
 		return {};
 	}
@@ -407,7 +407,7 @@ gb_internal OdinDocString odin_doc_expr_string(OdinDocWriter *w, Ast *expr) {
 	return odin_doc_write_string(w, make_string(cast(u8 *)s, gb_string_length(s)));
 }
 
-gb_internal OdinDocArray<OdinDocAttribute> odin_doc_attributes(OdinDocWriter *w, Array<Ast *> const &attributes) {
+static OdinDocArray<OdinDocAttribute> odin_doc_attributes(OdinDocWriter *w, Array<Ast *> const &attributes) {
 	isize count = 0;
 	for_array(i, attributes) {
 		Ast *attr = attributes[i];
@@ -453,7 +453,7 @@ gb_internal OdinDocArray<OdinDocAttribute> odin_doc_attributes(OdinDocWriter *w,
 	return odin_write_slice(w, attribs.data, attribs.count);
 }
 
-gb_internal OdinDocArray<OdinDocString> odin_doc_where_clauses(OdinDocWriter *w, Slice<Ast *> const &where_clauses) {
+static OdinDocArray<OdinDocString> odin_doc_where_clauses(OdinDocWriter *w, Slice<Ast *> const &where_clauses) {
 	if (where_clauses.count == 0) {
 		return {};
 	}
@@ -467,19 +467,19 @@ gb_internal OdinDocArray<OdinDocString> odin_doc_where_clauses(OdinDocWriter *w,
 	return odin_write_slice(w, clauses.data, clauses.count);
 }
 
-gb_internal OdinDocArray<OdinDocTypeIndex> odin_doc_type_as_slice(OdinDocWriter *w, Type *type) {
+static OdinDocArray<OdinDocTypeIndex> odin_doc_type_as_slice(OdinDocWriter *w, Type *type) {
 	OdinDocTypeIndex index = odin_doc_type(w, type);
 	return odin_write_item_as_slice(w, index);
 }
 
-gb_internal OdinDocArray<OdinDocEntityIndex> odin_doc_add_entity_as_slice(OdinDocWriter *w, Entity *e) {
+static OdinDocArray<OdinDocEntityIndex> odin_doc_add_entity_as_slice(OdinDocWriter *w, Entity *e) {
 	OdinDocEntityIndex index = odin_doc_add_entity(w, e);
 	return odin_write_item_as_slice(w, index);
 }
 
 
 
-gb_internal OdinDocTypeIndex odin_doc_type(OdinDocWriter *w, Type *type) {
+static OdinDocTypeIndex odin_doc_type(OdinDocWriter *w, Type *type) {
 	if (type == nullptr) {
 		return 0;
 	}
@@ -738,7 +738,7 @@ gb_internal OdinDocTypeIndex odin_doc_type(OdinDocWriter *w, Type *type) {
 		doc_type.types = odin_doc_type_as_slice(w, type->SimdVector.elem);
 		// TODO(bill):
 		break;
-		
+
 	case Type_Matrix:
 		doc_type.kind = OdinDocType_Matrix;
 		doc_type.elem_count_len = 2;
@@ -753,7 +753,7 @@ gb_internal OdinDocTypeIndex odin_doc_type(OdinDocWriter *w, Type *type) {
 	}
 	return type_index;
 }
-gb_internal OdinDocEntityIndex odin_doc_add_entity(OdinDocWriter *w, Entity *e) {
+static OdinDocEntityIndex odin_doc_add_entity(OdinDocWriter *w, Entity *e) {
 	if (e == nullptr) {
 		return 0;
 	}
@@ -922,7 +922,7 @@ gb_internal OdinDocEntityIndex odin_doc_add_entity(OdinDocWriter *w, Entity *e) 
 	return doc_entity_index;
 }
 
-gb_internal void odin_doc_update_entities(OdinDocWriter *w) {
+static void odin_doc_update_entities(OdinDocWriter *w) {
 	debugf("odin_doc_update_entities %s\n", w->state ? "preparing" : "writing");
 
 	{
@@ -993,7 +993,7 @@ gb_internal void odin_doc_update_entities(OdinDocWriter *w) {
 
 
 
-gb_internal OdinDocArray<OdinDocScopeEntry> odin_doc_add_pkg_entries(OdinDocWriter *w, AstPackage *pkg) {
+static OdinDocArray<OdinDocScopeEntry> odin_doc_add_pkg_entries(OdinDocWriter *w, AstPackage *pkg) {
 	if (pkg->scope == nullptr) {
 		return {};
 	}
@@ -1045,7 +1045,7 @@ gb_internal OdinDocArray<OdinDocScopeEntry> odin_doc_add_pkg_entries(OdinDocWrit
 }
 
 
-gb_internal void odin_doc_write_docs(OdinDocWriter *w) {
+static void odin_doc_write_docs(OdinDocWriter *w) {
 	debugf("odin_doc_write_docs %s", w->state ? "preparing" : "writing");
 
 	auto pkgs = array_make<AstPackage *>(heap_allocator(), 0, w->info->packages.count);
@@ -1121,7 +1121,7 @@ gb_internal void odin_doc_write_docs(OdinDocWriter *w) {
 }
 
 
-gb_internal void odin_doc_write_to_file(OdinDocWriter *w, char const *filename) {
+static void odin_doc_write_to_file(OdinDocWriter *w, char const *filename) {
 	debugf("odin_doc_write_to_file %s\n", filename);
 	gbFile f = {};
 	gbFileError err = gb_file_open_mode(&f, gbFileMode_Write, filename);
@@ -1138,7 +1138,7 @@ gb_internal void odin_doc_write_to_file(OdinDocWriter *w, char const *filename) 
 	}
 }
 
-gb_internal void odin_doc_write(CheckerInfo *info, char const *filename) {
+static void odin_doc_write(CheckerInfo *info, char const *filename) {
 	g_in_doc_writer.store(true);
 
 	OdinDocWriter w_ = {};
@@ -1161,6 +1161,6 @@ gb_internal void odin_doc_write(CheckerInfo *info, char const *filename) {
 }
 
 
-gb_internal bool is_in_doc_writer(void) {
+static bool is_in_doc_writer(void) {
 	return g_in_doc_writer.load();
 }

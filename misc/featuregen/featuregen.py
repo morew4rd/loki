@@ -30,12 +30,12 @@ with tempfile.NamedTemporaryFile(suffix=".odin", delete=True) as temp_file:
 			if state == SEEKING_CPUS:
 				if line == "Available CPUs for this target:\n":
 					state = PARSING_CPUS
-			
+
 			elif state == PARSING_CPUS:
 				if line == "Available features for this target:\n":
 					state = PARSING_FEATURES
 					continue
-			
+
 				parts = line.split(" -", maxsplit=1)
 				if len(parts) < 2:
 					continue
@@ -74,7 +74,7 @@ def print_default_features(triple, microarch):
 		sys.exit(1)
 
 print("// Generated with the featuregen script in `misc/featuregen`")
-print("gb_global String target_microarch_list[TargetArch_COUNT] = {")
+print("static String target_microarch_list[TargetArch_COUNT] = {")
 print("\t// TargetArch_Invalid:")
 print('\tstr_lit(""),')
 for arch, target, triple, cpus, features in archs:
@@ -86,7 +86,7 @@ print("};")
 print("")
 
 print("// Generated with the featuregen script in `misc/featuregen`")
-print("gb_global String target_features_list[TargetArch_COUNT] = {")
+print("static String target_features_list[TargetArch_COUNT] = {")
 print("\t// TargetArch_Invalid:")
 print('\tstr_lit(""),')
 for arch, target, triple, cpus, features in archs:
@@ -98,7 +98,7 @@ print("};")
 print("")
 
 print("// Generated with the featuregen script in `misc/featuregen`")
-print("gb_global int target_microarch_counts[TargetArch_COUNT] = {")
+print("static int target_microarch_counts[TargetArch_COUNT] = {")
 print("\t// TargetArch_Invalid:")
 print("\t0,")
 for arch, target, triple, cpus, feature in archs:
@@ -109,7 +109,7 @@ print("};")
 print("")
 
 print("// Generated with the featuregen script in `misc/featuregen`")
-print("gb_global MicroarchFeatureList microarch_features_list[] = {")
+print("static MicroarchFeatureList microarch_features_list[] = {")
 for arch, target, triple, cpus, features in archs:
 	print(f"\t// TargetArch_{arch}:")
 	for cpu in cpus:

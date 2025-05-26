@@ -1,11 +1,11 @@
 
-gb_internal void lb_set_odin_rtti_section(LLVMValueRef value) {
+static void lb_set_odin_rtti_section(LLVMValueRef value) {
 	if (build_context.metrics.os != TargetOs_darwin) {
 		LLVMSetSection(value, ".odinti");
 	}
 }
 
-gb_internal isize lb_type_info_index(CheckerInfo *info, TypeInfoPair pair, bool err_on_not_found=true) {
+static isize lb_type_info_index(CheckerInfo *info, TypeInfoPair pair, bool err_on_not_found=true) {
 	isize index = type_info_index(info, pair, err_on_not_found);
 	if (index >= 0) {
 		return index;
@@ -21,11 +21,11 @@ gb_internal isize lb_type_info_index(CheckerInfo *info, TypeInfoPair pair, bool 
 	return -1;
 }
 
-gb_internal isize lb_type_info_index(CheckerInfo *info, Type *type, bool err_on_not_found=true) {
+static isize lb_type_info_index(CheckerInfo *info, Type *type, bool err_on_not_found=true) {
 	return lb_type_info_index(info, {type, type_hash_canonical_type(type)}, err_on_not_found);
 }
 
-gb_internal u64 lb_typeid_kind(lbModule *m, Type *type, u64 id=0) {
+static u64 lb_typeid_kind(lbModule *m, Type *type, u64 id=0) {
 	GB_ASSERT(!build_context.no_rtti);
 
 	type = default_type(type);
@@ -74,7 +74,7 @@ gb_internal u64 lb_typeid_kind(lbModule *m, Type *type, u64 id=0) {
 	return kind;
 }
 
-gb_internal lbValue lb_typeid(lbModule *m, Type *type) {
+static lbValue lb_typeid(lbModule *m, Type *type) {
 	GB_ASSERT(!build_context.no_rtti);
 
 	type = default_type(type);
@@ -88,7 +88,7 @@ gb_internal lbValue lb_typeid(lbModule *m, Type *type) {
 	return res;
 }
 
-gb_internal lbValue lb_type_info(lbProcedure *p, Type *type) {
+static lbValue lb_type_info(lbProcedure *p, Type *type) {
 	GB_ASSERT(!build_context.no_rtti);
 
 	type = default_type(type);
@@ -103,11 +103,11 @@ gb_internal lbValue lb_type_info(lbProcedure *p, Type *type) {
 	return lb_emit_load(p, ptr);
 }
 
-gb_internal LLVMTypeRef lb_get_procedure_raw_type(lbModule *m, Type *type) {
+static LLVMTypeRef lb_get_procedure_raw_type(lbModule *m, Type *type) {
 	return lb_type_internal_for_procedures_raw(m, type);
 }
 
-gb_internal lbValue lb_const_array_epi(lbModule *m, lbValue value, isize index) {
+static lbValue lb_const_array_epi(lbModule *m, lbValue value, isize index) {
 	GB_ASSERT(is_type_pointer(value.type));
 	Type *type = type_deref(value.type);
 
@@ -125,35 +125,35 @@ gb_internal lbValue lb_const_array_epi(lbModule *m, lbValue value, isize index) 
 }
 
 
-gb_internal lbValue lb_type_info_member_types_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
+static lbValue lb_type_info_member_types_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
 	GB_ASSERT(m == &m->gen->default_module);
 	if (offset_) *offset_ = lb_global_type_info_member_types_index;
 	lbValue offset = lb_const_array_epi(m, lb_global_type_info_member_types.addr, lb_global_type_info_member_types_index);
 	lb_global_type_info_member_types_index += cast(i32)count;
 	return offset;
 }
-gb_internal lbValue lb_type_info_member_names_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
+static lbValue lb_type_info_member_names_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
 	GB_ASSERT(m == &m->gen->default_module);
 	if (offset_) *offset_ = lb_global_type_info_member_names_index;
 	lbValue offset = lb_const_array_epi(m, lb_global_type_info_member_names.addr, lb_global_type_info_member_names_index);
 	lb_global_type_info_member_names_index += cast(i32)count;
 	return offset;
 }
-gb_internal lbValue lb_type_info_member_offsets_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
+static lbValue lb_type_info_member_offsets_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
 	GB_ASSERT(m == &m->gen->default_module);
 	if (offset_) *offset_ = lb_global_type_info_member_offsets_index;
 	lbValue offset = lb_const_array_epi(m, lb_global_type_info_member_offsets.addr, lb_global_type_info_member_offsets_index);
 	lb_global_type_info_member_offsets_index += cast(i32)count;
 	return offset;
 }
-gb_internal lbValue lb_type_info_member_usings_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
+static lbValue lb_type_info_member_usings_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
 	GB_ASSERT(m == &m->gen->default_module);
 	if (offset_) *offset_ = lb_global_type_info_member_usings_index;
 	lbValue offset = lb_const_array_epi(m, lb_global_type_info_member_usings.addr, lb_global_type_info_member_usings_index);
 	lb_global_type_info_member_usings_index += cast(i32)count;
 	return offset;
 }
-gb_internal lbValue lb_type_info_member_tags_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
+static lbValue lb_type_info_member_tags_offset(lbModule *m, isize count, i64 *offset_=nullptr) {
 	GB_ASSERT(m == &m->gen->default_module);
 	if (offset_) *offset_ = lb_global_type_info_member_tags_index;
 	lbValue offset = lb_const_array_epi(m, lb_global_type_info_member_tags.addr, lb_global_type_info_member_tags_index);
@@ -161,7 +161,7 @@ gb_internal lbValue lb_type_info_member_tags_offset(lbModule *m, isize count, i6
 	return offset;
 }
 
-gb_internal LLVMTypeRef *lb_setup_modified_types_for_type_info(lbModule *m, isize max_type_info_count) {
+static LLVMTypeRef *lb_setup_modified_types_for_type_info(lbModule *m, isize max_type_info_count) {
 	LLVMTypeRef *element_types = gb_alloc_array(heap_allocator(), LLVMTypeRef, max_type_info_count);
 	defer (gb_free(heap_allocator(), element_types));
 
@@ -221,7 +221,7 @@ gb_internal LLVMTypeRef *lb_setup_modified_types_for_type_info(lbModule *m, isiz
 	return modified_types;
 }
 
-gb_internal void lb_setup_type_info_data_giant_array(lbModule *m, i64 global_type_info_data_entity_count) { // NOTE(bill): Setup type_info data
+static void lb_setup_type_info_data_giant_array(lbModule *m, i64 global_type_info_data_entity_count) { // NOTE(bill): Setup type_info data
 	auto const &ADD_GLOBAL_TYPE_INFO_ENTRY = [](lbModule *m, LLVMTypeRef type, isize index) -> LLVMValueRef {
 		char name[64] = {};
 		gb_snprintf(name, 63, "__$ti-%lld", cast(long long)index);
@@ -1069,7 +1069,7 @@ gb_internal void lb_setup_type_info_data_giant_array(lbModule *m, i64 global_typ
 }
 
 
-gb_internal void lb_setup_type_info_data(lbModule *m) { // NOTE(bill): Setup type_info data
+static void lb_setup_type_info_data(lbModule *m) { // NOTE(bill): Setup type_info data
 	if (build_context.no_rtti) {
 		return;
 	}

@@ -273,7 +273,7 @@ extern "C" {
 	#include <kernel/OS.h>
 	#define lseek64 lseek
 #endif
-    
+
 #if defined(GB_SYSTEM_UNIX)
 	#include <semaphore.h>
 #endif
@@ -544,14 +544,6 @@ extern "C++" {
 #ifndef gb_swap
 #define gb_swap(Type, a, b) do { Type tmp = (a); (a) = (b); (b) = tmp; } while (0)
 #endif
-
-// NOTE(bill): Because static means 3/4 different things in C/C++. Great design (!)
-#ifndef gb_global
-#define gb_global        static // Global variables
-#define gb_internal      static // Internal linkage
-#define gb_local_persist static // Local Persisting variables
-#endif
-
 
 #ifndef gb_unused
 	#if defined(_MSC_VER)
@@ -3051,7 +3043,7 @@ gb_inline u32 gb_thread_current_id(void) {
 
 
 
-gb_internal gbAllocator heap_allocator(void); // this is defined in common_memory.cpp
+static gbAllocator heap_allocator(void); // this is defined in common_memory.cpp
 gb_inline gbAllocator gb_heap_allocator(void) {
 	return heap_allocator();
 }
@@ -3379,7 +3371,7 @@ isize gb_affinity_thread_count_for_core(gbAffinity *a, isize core) {
 // TODO(bill): Should I make all the macros local?
 
 #define GB__COMPARE_PROC(Type) \
-gb_global isize gb__##Type##_cmp_offset; GB_COMPARE_PROC(gb__##Type##_cmp) { \
+static isize gb__##Type##_cmp_offset; GB_COMPARE_PROC(gb__##Type##_cmp) { \
 	Type const p = *cast(Type const *)gb_pointer_add_const(a, gb__##Type##_cmp_offset); \
 	Type const q = *cast(Type const *)gb_pointer_add_const(b, gb__##Type##_cmp_offset); \
 	return p < q ? -1 : p > q; \
@@ -3399,7 +3391,7 @@ GB__COMPARE_PROC(f64);
 GB__COMPARE_PROC(char);
 
 // NOTE(bill): str_cmp is special as it requires a funny type and funny comparison
-gb_global isize gb__str_cmp_offset; GB_COMPARE_PROC(gb__str_cmp) {
+static isize gb__str_cmp_offset; GB_COMPARE_PROC(gb__str_cmp) {
 	char const *p = *cast(char const **)gb_pointer_add_const(a, gb__str_cmp_offset);
 	char const *q = *cast(char const **)gb_pointer_add_const(b, gb__str_cmp_offset);
 	return gb_strcmp(p, q);
@@ -3854,7 +3846,7 @@ gb_inline void gb_str_concat(char *dest, isize dest_len,
 }
 
 
-gb_internal isize gb__scan_i64(char const *text, i32 base, i64 *value) {
+static isize gb__scan_i64(char const *text, i32 base, i64 *value) {
 	char const *text_begin = text;
 	i64 result = 0;
 	b32 negative = false;
@@ -3891,7 +3883,7 @@ gb_internal isize gb__scan_i64(char const *text, i32 base, i64 *value) {
 	return (text - text_begin);
 }
 
-gb_internal isize gb__scan_u64(char const *text, i32 base, u64 *value) {
+static isize gb__scan_u64(char const *text, i32 base, u64 *value) {
 	char const *text_begin = text;
 	u64 result = 0;
 
@@ -3955,7 +3947,7 @@ i64 gb_str_to_i64(char const *str, char **end_ptr, i32 base) {
 }
 
 // TODO(bill): Are these good enough for characters?
-gb_global char const gb__num_to_char_table[] =
+static char const gb__num_to_char_table[] =
 	"0123456789"
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	"abcdefghijklmnopqrstuvwxyz"
@@ -4408,18 +4400,18 @@ u8 *gb_ucs2_to_utf8(u8 *buffer, isize len, u16 const *str) {
 }
 
 u16 *gb_utf8_to_ucs2_buf(u8 const *str) { // NOTE(bill): Uses locally persisting buffer
-	gb_local_persist u16 buf[4096];
+	static u16 buf[4096];
 	return gb_utf8_to_ucs2(buf, gb_count_of(buf), str);
 }
 
 u8 *gb_ucs2_to_utf8_buf(u16 const *str) { // NOTE(bill): Uses locally persisting buffer
-	gb_local_persist u8 buf[4096];
+	static u8 buf[4096];
 	return gb_ucs2_to_utf8(buf, gb_count_of(buf), str);
 }
 
 
 
-gb_global u8 const gb__utf8_first[256] = {
+static u8 const gb__utf8_first[256] = {
 	0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, // 0x00-0x0F
 	0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, // 0x10-0x1F
 	0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, // 0x20-0x2F
@@ -4443,7 +4435,7 @@ typedef struct gbUtf8AcceptRange {
 	u8 lo, hi;
 } gbUtf8AcceptRange;
 
-gb_global gbUtf8AcceptRange const gb__utf8_accept_ranges[] = {
+static gbUtf8AcceptRange const gb__utf8_accept_ranges[] = {
 	{0x80, 0xbf},
 	{0xa0, 0xbf},
 	{0x80, 0x9f},
@@ -4605,7 +4597,7 @@ u32 gb_adler32(void const *data, isize len) {
 }
 
 
-gb_global u32 const GB__CRC32_TABLE[256] = {
+static u32 const GB__CRC32_TABLE[256] = {
 	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
 	0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
 	0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -4672,7 +4664,7 @@ gb_global u32 const GB__CRC32_TABLE[256] = {
 	0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
 };
 
-gb_global u64 const GB__CRC64_TABLE[256] = {
+static u64 const GB__CRC64_TABLE[256] = {
 	0x0000000000000000ull, 0x42f0e1eba9ea3693ull, 0x85e1c3d753d46d26ull, 0xc711223cfa3e5bb5ull,
 	0x493366450e42ecdfull, 0x0bc387aea7a8da4cull, 0xccd2a5925d9681f9ull, 0x8e224479f47cb76aull,
 	0x9266cc8a1c85d9beull, 0xd0962d61b56fef2dull, 0x17870f5d4f51b498ull, 0x5577eeb6e6bb820bull,
@@ -4971,7 +4963,7 @@ u64 gb_murmur64_seed(void const *data_, isize len, u64 seed) {
 
 #if defined(GB_SYSTEM_WINDOWS)
 
-	gb_internal wchar_t *gb__alloc_utf8_to_ucs2(gbAllocator a, char const *text, isize *w_len_) {
+	static wchar_t *gb__alloc_utf8_to_ucs2(gbAllocator a, char const *text, isize *w_len_) {
 		wchar_t *w_text = NULL;
 		isize len = 0, w_len = 0, w_len1 = 0;
 		if (text == NULL) {
@@ -5000,7 +4992,7 @@ u64 gb_murmur64_seed(void const *data_, isize len, u64 seed) {
 		return w_text;
 	}
 
-	gb_internal GB_FILE_SEEK_PROC(gb__win32_file_seek) {
+	static GB_FILE_SEEK_PROC(gb__win32_file_seek) {
 		LARGE_INTEGER li_offset;
 		li_offset.QuadPart = offset;
 		if (!SetFilePointerEx(fd.p, li_offset, &li_offset, whence)) {
@@ -5011,7 +5003,7 @@ u64 gb_murmur64_seed(void const *data_, isize len, u64 seed) {
 		return true;
 	}
 
-	gb_internal GB_FILE_READ_AT_PROC(gb__win32_file_read) {
+	static GB_FILE_READ_AT_PROC(gb__win32_file_read) {
 		b32 result = false;
 		DWORD size_ = cast(DWORD)(size > I32_MAX ? I32_MAX : size);
 		DWORD bytes_read_;
@@ -5024,7 +5016,7 @@ u64 gb_murmur64_seed(void const *data_, isize len, u64 seed) {
 		return result;
 	}
 
-	gb_internal GB_FILE_WRITE_AT_PROC(gb__win32_file_write) {
+	static GB_FILE_WRITE_AT_PROC(gb__win32_file_write) {
 		DWORD size_ = cast(DWORD)(size > I32_MAX ? I32_MAX : size);
 		DWORD bytes_written_;
 		gb__win32_file_seek(fd, offset, gbSeekWhence_Begin, NULL);
@@ -5035,7 +5027,7 @@ u64 gb_murmur64_seed(void const *data_, isize len, u64 seed) {
 		return false;
 	}
 
-	gb_internal GB_FILE_CLOSE_PROC(gb__win32_file_close) {
+	static GB_FILE_CLOSE_PROC(gb__win32_file_close) {
 		CloseHandle(fd.p);
 	}
 
@@ -5118,7 +5110,7 @@ u64 gb_murmur64_seed(void const *data_, isize len, u64 seed) {
 	}
 
 #else // POSIX
-	gb_internal GB_FILE_SEEK_PROC(gb__posix_file_seek) {
+	static GB_FILE_SEEK_PROC(gb__posix_file_seek) {
 		#if defined(GB_SYSTEM_OSX)
 		i64 res = lseek(fd.i, offset, whence);
 		#else
@@ -5129,14 +5121,14 @@ u64 gb_murmur64_seed(void const *data_, isize len, u64 seed) {
 		return true;
 	}
 
-	gb_internal GB_FILE_READ_AT_PROC(gb__posix_file_read) {
+	static GB_FILE_READ_AT_PROC(gb__posix_file_read) {
 		isize res = pread(fd.i, buffer, size, offset);
 		if (res < 0) return false;
 		if (bytes_read) *bytes_read = res;
 		return true;
 	}
 
-	gb_internal GB_FILE_WRITE_AT_PROC(gb__posix_file_write) {
+	static GB_FILE_WRITE_AT_PROC(gb__posix_file_write) {
 		isize res;
 		i64 curr_offset = 0;
 		gb__posix_file_seek(fd, 0, gbSeekWhence_Current, &curr_offset);
@@ -5152,7 +5144,7 @@ u64 gb_murmur64_seed(void const *data_, isize len, u64 seed) {
 	}
 
 
-	gb_internal GB_FILE_CLOSE_PROC(gb__posix_file_close) {
+	static GB_FILE_CLOSE_PROC(gb__posix_file_close) {
 		close(fd.i);
 	}
 
@@ -5336,8 +5328,8 @@ gb_inline b32 gb_file_has_changed(gbFile *f) {
 }
 
 // TODO(bill): Is this a bad idea?
-gb_global b32    gb__std_file_set;
-gb_global gbFile gb__std_files[gbFileStandard_Count];
+static b32    gb__std_file_set;
+static gbFile gb__std_files[gbFileStandard_Count];
 
 
 #if defined(GB_SYSTEM_WINDOWS)
@@ -5528,7 +5520,7 @@ gb_inline b32 gb_file_copy(char const *existing_filename, char const *new_filena
 	struct stat stat_existing;
 	fstat(existing_fd, &stat_existing);
 	size = sendfile(new_fd, existing_fd, 0, stat_existing.st_size);
-	
+
 	// set new handle to wanted size for safety
 	int i = ftruncate(new_fd, size);
 	GB_ASSERT(i == 0);
@@ -5571,7 +5563,7 @@ gb_inline b32 gb_file_copy(char const *existing_filename, char const *new_filena
 			size += nwrite;
 		}
 	}
-	
+
 	gb_mfree(buf);
 	close(new_fd);
 	close(existing_fd);
@@ -5863,7 +5855,7 @@ gb_inline isize gb_fprintf_va(struct gbFile *f, char const *fmt, va_list va) {
 
 
 gb_inline char *gb_bprintf_va(char const *fmt, va_list va) {
-	gb_thread_local gb_local_persist char buffer[4096];
+	gb_thread_local static char buffer[4096];
 	gb_snprintf_va(buffer, gb_size_of(buffer), fmt, va);
 	return buffer;
 }
@@ -5902,7 +5894,7 @@ typedef struct {
 } gbprivFmtInfo;
 
 
-gb_internal isize gb__print_string(char *text, isize max_len, gbprivFmtInfo *info, char const *str) {
+static isize gb__print_string(char *text, isize max_len, gbprivFmtInfo *info, char const *str) {
 	// TODO(bill): Get precision and width to work correctly. How does it actually work?!
 	// TODO(bill): This looks very buggy indeed.
 	isize res = 0, len;
@@ -5952,27 +5944,27 @@ gb_internal isize gb__print_string(char *text, isize max_len, gbprivFmtInfo *inf
 	return res;
 }
 
-gb_internal isize gb__print_char(char *text, isize max_len, gbprivFmtInfo *info, char arg) {
+static isize gb__print_char(char *text, isize max_len, gbprivFmtInfo *info, char arg) {
 	char str[2] = "";
 	str[0] = arg;
 	return gb__print_string(text, max_len, info, str);
 }
 
 
-gb_internal isize gb__print_i64(char *text, isize max_len, gbprivFmtInfo *info, i64 value) {
+static isize gb__print_i64(char *text, isize max_len, gbprivFmtInfo *info, i64 value) {
 	char num[130];
 	gb_i64_to_str(value, num, info ? info->base : 10);
 	return gb__print_string(text, max_len, info, num);
 }
 
-gb_internal isize gb__print_u64(char *text, isize max_len, gbprivFmtInfo *info, u64 value) {
+static isize gb__print_u64(char *text, isize max_len, gbprivFmtInfo *info, u64 value) {
 	char num[130];
 	gb_u64_to_str(value, num, info ? info->base : 10);
 	return gb__print_string(text, max_len, info, num);
 }
 
 
-gb_internal isize gb__print_f64(char *text, isize max_len, gbprivFmtInfo *info, f64 arg) {
+static isize gb__print_f64(char *text, isize max_len, gbprivFmtInfo *info, f64 arg) {
 	// TODO(bill): Handle exponent notation
 	isize width, len, remaining = max_len;
 	char *text_begin = text;
@@ -6319,7 +6311,7 @@ gb_no_inline isize gb_snprintf_va(char *text, isize max_len, char const *fmt, va
 #if defined(GB_SYSTEM_WINDOWS)
 
 	gb_inline f64 gb_time_now(void) {
-		gb_local_persist LARGE_INTEGER win32_perf_count_freq = {0};
+		static LARGE_INTEGER win32_perf_count_freq = {0};
 		f64 result;
 		LARGE_INTEGER counter;
 		if (!win32_perf_count_freq.QuadPart) {
@@ -6348,8 +6340,8 @@ gb_no_inline isize gb_snprintf_va(char *text, isize max_len, char const *fmt, va
 
 #else
 
-	gb_global f64 gb__timebase  = 0.0;
-	gb_global u64 gb__timestart = 0;
+	static f64 gb__timebase  = 0.0;
+	static u64 gb__timestart = 0;
 
 	gb_inline f64 gb_time_now(void) {
 #if defined(GB_SYSTEM_OSX)

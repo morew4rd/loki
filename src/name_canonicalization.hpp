@@ -45,14 +45,14 @@
 
 struct TypeWriter;
 
-gb_internal void     write_type_to_canonical_string(TypeWriter *w, Type *type);
-gb_internal void     write_canonical_entity_name(TypeWriter *w, Entity *e);
-gb_internal u64      type_hash_canonical_type(Type *type);
-gb_internal String   type_to_canonical_string(gbAllocator allocator, Type *type);
-gb_internal gbString temp_canonical_string(Type *type);
+static void     write_type_to_canonical_string(TypeWriter *w, Type *type);
+static void     write_canonical_entity_name(TypeWriter *w, Entity *e);
+static u64      type_hash_canonical_type(Type *type);
+static String   type_to_canonical_string(gbAllocator allocator, Type *type);
+static gbString temp_canonical_string(Type *type);
 
 
-gb_internal GB_COMPARE_PROC(type_info_pair_cmp);
+static GB_COMPARE_PROC(type_info_pair_cmp);
 
 
 struct TypeInfoPair {
@@ -96,32 +96,32 @@ struct TypeSetIterator {
 };
 
 
-gb_internal void  type_set_init   (TypeSet *s, isize capacity = 16);
-gb_internal void  type_set_destroy(TypeSet *s);
-gb_internal Type *type_set_add    (TypeSet *s, Type *ptr);
-gb_internal Type *type_set_add    (TypeSet *s, TypeInfoPair pair);
-gb_internal bool  type_set_update (TypeSet *s, Type *ptr); // returns true if it previously existed
-gb_internal bool  type_set_update (TypeSet *s, TypeInfoPair pair); // returns true if it previously existed
-gb_internal bool  type_set_exists (TypeSet *s, Type *ptr);
-gb_internal void  type_set_remove (TypeSet *s, Type *ptr);
-gb_internal void  type_set_clear  (TypeSet *s);
-gb_internal TypeInfoPair *type_set_retrieve(TypeSet *s, Type *ptr);
+static void  type_set_init   (TypeSet *s, isize capacity = 16);
+static void  type_set_destroy(TypeSet *s);
+static Type *type_set_add    (TypeSet *s, Type *ptr);
+static Type *type_set_add    (TypeSet *s, TypeInfoPair pair);
+static bool  type_set_update (TypeSet *s, Type *ptr); // returns true if it previously existed
+static bool  type_set_update (TypeSet *s, TypeInfoPair pair); // returns true if it previously existed
+static bool  type_set_exists (TypeSet *s, Type *ptr);
+static void  type_set_remove (TypeSet *s, Type *ptr);
+static void  type_set_clear  (TypeSet *s);
+static TypeInfoPair *type_set_retrieve(TypeSet *s, Type *ptr);
 
-gb_internal TypeSetIterator begin(TypeSet &set) noexcept;
-gb_internal TypeSetIterator end(TypeSet &set) noexcept;
+static TypeSetIterator begin(TypeSet &set) noexcept;
+static TypeSetIterator end(TypeSet &set) noexcept;
 
 
 template <typename V>
-gb_internal gb_inline V *map_get(PtrMap<u64, V> *h, Type *key) {
+static gb_inline V *map_get(PtrMap<u64, V> *h, Type *key) {
 	return map_get(h, type_hash_canonical_type(key));
 }
 template <typename V>
-gb_internal gb_inline void map_set(PtrMap<u64, V> *h, Type *key, V const &value) {
+static gb_inline void map_set(PtrMap<u64, V> *h, Type *key, V const &value) {
 	map_set(h, type_hash_canonical_type(key), value);
 }
 
 template <typename V>
-gb_internal gb_inline V &map_must_get(PtrMap<u64, V> *h, Type *key) {
+static gb_inline V &map_must_get(PtrMap<u64, V> *h, Type *key) {
 	V *ptr = map_get(h, type_hash_canonical_type(key));
 	GB_ASSERT(ptr != nullptr);
 	return *ptr;

@@ -13,14 +13,14 @@ struct Timings {
 
 
 #if defined(GB_SYSTEM_WINDOWS)
-gb_internal u64 win32_time_stamp_time_now(void) {
+static u64 win32_time_stamp_time_now(void) {
 	LARGE_INTEGER counter;
 	QueryPerformanceCounter(&counter);
 	return counter.QuadPart;
 }
 
-gb_internal u64 win32_time_stamp__freq(void) {
-	gb_local_persist LARGE_INTEGER win32_perf_count_freq = {0};
+static u64 win32_time_stamp__freq(void) {
+	static LARGE_INTEGER win32_perf_count_freq = {0};
 	if (!win32_perf_count_freq.QuadPart) {
 		QueryPerformanceFrequency(&win32_perf_count_freq);
 		GB_ASSERT(win32_perf_count_freq.QuadPart != 0);
@@ -33,7 +33,7 @@ gb_internal u64 win32_time_stamp__freq(void) {
 
 #include <mach/mach_time.h>
 
-gb_internal mach_timebase_info_data_t osx_init_timebase_info(void) {
+static mach_timebase_info_data_t osx_init_timebase_info(void) {
 	mach_timebase_info_data_t data;
 	data.numer = 0;
 	data.denom = 0;
@@ -43,12 +43,12 @@ gb_internal mach_timebase_info_data_t osx_init_timebase_info(void) {
 	return data;
 }
 
-gb_internal u64 osx_time_stamp_time_now(void) {
+static u64 osx_time_stamp_time_now(void) {
 	return mach_absolute_time();
 }
 
-gb_internal u64 osx_time_stamp__freq(void) {
-	gb_local_persist mach_timebase_info_data_t data = osx_init_timebase_info();
+static u64 osx_time_stamp__freq(void) {
+	static mach_timebase_info_data_t data = osx_init_timebase_info();
 	return 1000000000ull * cast(u64)data.denom / cast(u64)data.numer;
 }
 
@@ -56,15 +56,15 @@ gb_internal u64 osx_time_stamp__freq(void) {
 
 #include <time.h>
 
-gb_internal u64 unix_time_stamp_time_now(void) {
+static u64 unix_time_stamp_time_now(void) {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 
 	return (ts.tv_sec * 1000000000) + ts.tv_nsec;
 }
 
-gb_internal u64 unix_time_stamp__freq(void) {
-	gb_local_persist u64 freq = 0;
+static u64 unix_time_stamp__freq(void) {
+	static u64 freq = 0;
 
 	if (freq == 0) {
 		struct timespec ts;
@@ -81,7 +81,7 @@ gb_internal u64 unix_time_stamp__freq(void) {
 #error Implement system
 #endif
 
-gb_internal u64 time_stamp_time_now(void) {
+static u64 time_stamp_time_now(void) {
 #if defined(GB_SYSTEM_WINDOWS)
 	return win32_time_stamp_time_now();
 #elif defined(GB_SYSTEM_OSX)
@@ -93,7 +93,7 @@ gb_internal u64 time_stamp_time_now(void) {
 #endif
 }
 
-gb_internal u64 time_stamp__freq(void) {
+static u64 time_stamp__freq(void) {
 #if defined(GB_SYSTEM_WINDOWS)
 	return win32_time_stamp__freq();
 #elif defined(GB_SYSTEM_OSX)
@@ -105,44 +105,44 @@ gb_internal u64 time_stamp__freq(void) {
 #endif
 }
 
-gb_internal TimeStamp make_time_stamp(String const &label) {
+static TimeStamp make_time_stamp(String const &label) {
 	TimeStamp ts = {0};
 	ts.start = time_stamp_time_now();
 	ts.label = label;
 	return ts;
 }
 
-gb_internal void timings_init(Timings *t, String const &label, isize buffer_size) {
+static void timings_init(Timings *t, String const &label, isize buffer_size) {
 	array_init(&t->sections, heap_allocator(), 0, buffer_size);
 	t->total = make_time_stamp(label);
 	t->freq  = time_stamp__freq();
 }
 
-gb_internal void timings_destroy(Timings *t) {
+static void timings_destroy(Timings *t) {
 	array_free(&t->sections);
 }
 
-gb_internal void timings__stop_current_section(Timings *t) {
+static void timings__stop_current_section(Timings *t) {
 	if (t->sections.count > 0) {
 		t->sections[t->sections.count-1].finish = time_stamp_time_now();
 	}
 }
 
-gb_internal void timings_start_section(Timings *t, String const &label) {
+static void timings_start_section(Timings *t, String const &label) {
 	timings__stop_current_section(t);
 	array_add(&t->sections, make_time_stamp(label));
 }
 
-gb_internal f64 time_stamp_as_s(TimeStamp const &ts, u64 freq) {
+static f64 time_stamp_as_s(TimeStamp const &ts, u64 freq) {
 	GB_ASSERT_MSG(ts.finish >= ts.start, "time_stamp_as_ms - %.*s", LIT(ts.label));
 	return cast(f64)(ts.finish - ts.start) / cast(f64)freq;
 }
 
-gb_internal f64 time_stamp_as_ms(TimeStamp const &ts, u64 freq) {
+static f64 time_stamp_as_ms(TimeStamp const &ts, u64 freq) {
 	return 1000.0*time_stamp_as_s(ts, freq);
 }
 
-gb_internal f64 time_stamp_as_us(TimeStamp const &ts, u64 freq) {
+static f64 time_stamp_as_us(TimeStamp const &ts, u64 freq) {
 	return 1000000.0*time_stamp_as_s(ts, freq);
 }
 
@@ -162,7 +162,7 @@ enum TimingUnit {
 
 char const *timing_unit_strings[TimingUnit_COUNT] = {"s", "ms", "us"};
 
-gb_internal f64 time_stamp(TimeStamp const &ts, u64 freq, TimingUnit unit) {
+static f64 time_stamp(TimeStamp const &ts, u64 freq, TimingUnit unit) {
 	switch (unit) {
 	case TimingUnit_Millisecond: return time_stamp_as_ms(ts, freq);
 	case TimingUnit_Microsecond: return time_stamp_as_us(ts, freq);
@@ -171,7 +171,7 @@ gb_internal f64 time_stamp(TimeStamp const &ts, u64 freq, TimingUnit unit) {
 	}
 }
 
-gb_internal void timings_print_all(Timings *t, TimingUnit unit = TimingUnit_Millisecond, bool timings_are_finalized = false) {
+static void timings_print_all(Timings *t, TimingUnit unit = TimingUnit_Millisecond, bool timings_are_finalized = false) {
 	isize const SPACES_LEN = 256;
 	char SPACES[SPACES_LEN+1] = {0};
 	gb_memset(SPACES, ' ', SPACES_LEN);

@@ -27,14 +27,14 @@ struct OdinDocHeaderBase {
 };
 
 template <typename T>
-gb_internal Slice<T> from_array(OdinDocHeaderBase *base, OdinDocArray<T> const &a) {
+static Slice<T> from_array(OdinDocHeaderBase *base, OdinDocArray<T> const &a) {
 	Slice<T> s = {};
 	s.data  = cast(T *)(cast(uintptr)base + cast(uintptr)a.offset);
 	s.count = cast(isize)a.length;
 	return s;
 }
 
-gb_internal String from_string(OdinDocHeaderBase *base, OdinDocString const &s) {
+static String from_string(OdinDocHeaderBase *base, OdinDocString const &s) {
 	String str = {};
 	str.text = cast(u8 *)(cast(uintptr)base + cast(uintptr)s.offset);
 	str.len  = cast(isize)s.length;

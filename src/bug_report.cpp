@@ -24,7 +24,7 @@
 	NOTE(Jeroen): This prints the Windows product edition only, to be called from `print_platform_details`.
 */
 #if defined(GB_SYSTEM_WINDOWS)
-gb_internal void report_windows_product_type(DWORD ProductType) {
+static void report_windows_product_type(DWORD ProductType) {
 	switch (ProductType) {
 	case PRODUCT_ULTIMATE:
 		gb_printf("Ultimate");
@@ -148,7 +148,7 @@ gb_internal void report_windows_product_type(DWORD ProductType) {
 }
 #endif
 
-gb_internal void report_cpu_info() {
+static void report_cpu_info() {
 	gb_printf("\tCPU:     ");
 
 	#if defined(GB_CPU_X86)
@@ -186,7 +186,7 @@ gb_internal void report_cpu_info() {
 		bool generic = true;
 
 		#if defined(GB_SYSTEM_OSX)
-			char cpu_name[128] = {};	
+			char cpu_name[128] = {};
 			size_t cpu_name_size = 128;
 			if (sysctlbyname("machdep.cpu.brand_string", &cpu_name, &cpu_name_size, nullptr, 0) == 0) {
 				generic = false;
@@ -218,7 +218,7 @@ gb_internal void report_cpu_info() {
 /*
 	Report the amount of installed RAM.
 */
-gb_internal void report_ram_info() {
+static void report_ram_info() {
 	gb_printf("\tRAM:     ");
 
 	#if defined(GB_SYSTEM_WINDOWS)
@@ -230,7 +230,7 @@ gb_internal void report_ram_info() {
 
 	#elif defined(GB_SYSTEM_LINUX)
 		/*
-			Retrieve RAM info using `sysinfo()`, 
+			Retrieve RAM info using `sysinfo()`,
 		*/
 		struct sysinfo info;
 		int result = sysinfo(&info);
@@ -277,12 +277,12 @@ gb_internal void report_ram_info() {
 	#endif
 }
 
-gb_internal void report_os_info() {
+static void report_os_info() {
 	gb_printf("\tOS:      ");
 
 	#if defined(GB_SYSTEM_WINDOWS)
 	/*
-		NOTE(Jeroen): 
+		NOTE(Jeroen):
 			`GetVersionEx`  will return 6.2 for Windows 10 unless the program is manifested for Windows 10.
 			`RtlGetVersion` will return the true version.
 
@@ -341,7 +341,7 @@ gb_internal void report_os_info() {
 				} else {
 					gb_printf("11 ");
 				}
-				
+
 				report_windows_product_type(ProductType);
 
 				break;
@@ -486,7 +486,7 @@ gb_internal void report_os_info() {
 			char *end          = (char *)release.data + release.size;
 			const char *needle = "PRETTY_NAME=\"";
 			isize needle_len   = gb_strlen((needle));
-		
+
 			char *c = start;
 			for (; c < end; c++) {
 				if (gb_strncmp(c, needle, needle_len) == 0) {
@@ -602,14 +602,14 @@ gb_internal void report_os_info() {
 
 	#elif defined(GB_SYSTEM_OPENBSD) || defined(GB_SYSTEM_NETBSD)
 		struct utsname un;
-		
+
 		if (uname(&un) != -1) {
 			gb_printf("%s %s %s %s\n", un.sysname, un.release, un.version, un.machine);
 		} else {
 			#if defined(GB_SYSTEM_NETBSD)
 				gb_printf("NetBSD: Unknown\n");
 			#else
-				gb_printf("OpenBSD: Unknown\n");    
+				gb_printf("OpenBSD: Unknown\n");
 			#endif
 		}
 	#elif defined(GB_SYSTEM_FREEBSD)
@@ -644,12 +644,12 @@ gb_internal void report_os_info() {
 	#endif
 }
 
-gb_internal void report_backend_info() {
+static void report_backend_info() {
 	gb_printf("\tBackend: LLVM %s\n", LLVM_VERSION_STRING);
 }
 
 // NOTE(Jeroen): `odin report` prints some system information for easier bug reporting.
-gb_internal void print_bug_report_help() {
+static void print_bug_report_help() {
 	gb_printf("Where to find more information and get into contact when you encounter a bug:\n\n");
 	gb_printf("\tWebsite: https://odin-lang.org\n");
 	gb_printf("\tGitHub:  https://github.com/odin-lang/Odin/issues\n");

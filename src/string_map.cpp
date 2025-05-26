@@ -12,12 +12,12 @@ struct StringHashKey {
 		return this->string;
 	}
 };
-gb_internal gb_inline u32 string_hash(String const &s) {
+static gb_inline u32 string_hash(String const &s) {
 	u32 res = fnv32a(s.text, s.len) & 0x7fffffff;
 	return res | (res == 0);
 }
 
-gb_internal gb_inline StringHashKey string_hash_string(String const &s) {
+static gb_inline StringHashKey string_hash_string(String const &s) {
 	StringHashKey hash_key = {};
 	hash_key.hash = string_hash(s);
 	hash_key.string = s;
@@ -45,57 +45,57 @@ struct StringMap {
 };
 
 
-template <typename T> gb_internal void string_map_init    (StringMap<T> *h, usize capacity = 16);
-template <typename T> gb_internal void string_map_destroy (StringMap<T> *h);
+template <typename T> static void string_map_init    (StringMap<T> *h, usize capacity = 16);
+template <typename T> static void string_map_destroy (StringMap<T> *h);
 
-template <typename T> gb_internal T *  string_map_get     (StringMap<T> *h, char const *key);
-template <typename T> gb_internal T *  string_map_get     (StringMap<T> *h, String const &key);
-template <typename T> gb_internal T *  string_map_get     (StringMap<T> *h, StringHashKey const &key);
+template <typename T> static T *  string_map_get     (StringMap<T> *h, char const *key);
+template <typename T> static T *  string_map_get     (StringMap<T> *h, String const &key);
+template <typename T> static T *  string_map_get     (StringMap<T> *h, StringHashKey const &key);
 
-template <typename T> gb_internal T &  string_map_must_get(StringMap<T> *h, char const *key);
-template <typename T> gb_internal T &  string_map_must_get(StringMap<T> *h, String const &key);
-template <typename T> gb_internal T &  string_map_must_get(StringMap<T> *h, StringHashKey const &key);
+template <typename T> static T &  string_map_must_get(StringMap<T> *h, char const *key);
+template <typename T> static T &  string_map_must_get(StringMap<T> *h, String const &key);
+template <typename T> static T &  string_map_must_get(StringMap<T> *h, StringHashKey const &key);
 
-template <typename T> gb_internal void string_map_set     (StringMap<T> *h, char const *key,   T const &value);
-template <typename T> gb_internal void string_map_set     (StringMap<T> *h, String const &key, T const &value);
-template <typename T> gb_internal void string_map_set     (StringMap<T> *h, StringHashKey const &key, T const &value);
+template <typename T> static void string_map_set     (StringMap<T> *h, char const *key,   T const &value);
+template <typename T> static void string_map_set     (StringMap<T> *h, String const &key, T const &value);
+template <typename T> static void string_map_set     (StringMap<T> *h, StringHashKey const &key, T const &value);
 
-// template <typename T> gb_internal void string_map_remove  (StringMap<T> *h, StringHashKey const &key);
-template <typename T> gb_internal void string_map_clear   (StringMap<T> *h);
-template <typename T> gb_internal void string_map_grow    (StringMap<T> *h);
-template <typename T> gb_internal void string_map_reserve (StringMap<T> *h, usize new_count);
+// template <typename T> static void string_map_remove  (StringMap<T> *h, StringHashKey const &key);
+template <typename T> static void string_map_clear   (StringMap<T> *h);
+template <typename T> static void string_map_grow    (StringMap<T> *h);
+template <typename T> static void string_map_reserve (StringMap<T> *h, usize new_count);
 
-gb_internal gbAllocator string_map_allocator(void) {
+static gbAllocator string_map_allocator(void) {
 	return heap_allocator();
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_init(StringMap<T> *h, usize capacity) {
+static gb_inline void string_map_init(StringMap<T> *h, usize capacity) {
 	capacity = next_pow2_isize(capacity);
 	string_map_reserve(h, capacity);
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_destroy(StringMap<T> *h) {
+static gb_inline void string_map_destroy(StringMap<T> *h) {
 	gb_free(string_map_allocator(), h->hashes);
 	gb_free(string_map_allocator(), h->entries);
 }
 
 
 template <typename T>
-gb_internal void string_map__resize_hashes(StringMap<T> *h, usize count) {
+static void string_map__resize_hashes(StringMap<T> *h, usize count) {
 	h->hashes_count = cast(u32)resize_array_raw(&h->hashes, string_map_allocator(), h->hashes_count, count, MAP_CACHE_LINE_SIZE);
 }
 
 
 template <typename T>
-gb_internal void string_map__reserve_entries(StringMap<T> *h, usize capacity) {
+static void string_map__reserve_entries(StringMap<T> *h, usize capacity) {
 	h->entries_capacity = cast(u32)resize_array_raw(&h->entries, string_map_allocator(), h->entries_capacity, capacity, MAP_CACHE_LINE_SIZE);
 }
 
 
 template <typename T>
-gb_internal MapIndex string_map__add_entry(StringMap<T> *h, u32 hash, String const &key) {
+static MapIndex string_map__add_entry(StringMap<T> *h, u32 hash, String const &key) {
 	StringMapEntry<T> e = {};
 	e.key = key;
 	e.hash = hash;
@@ -108,7 +108,7 @@ gb_internal MapIndex string_map__add_entry(StringMap<T> *h, u32 hash, String con
 }
 
 template <typename T>
-gb_internal MapFindResult string_map__find(StringMap<T> *h, u32 hash, String const &key) {
+static MapFindResult string_map__find(StringMap<T> *h, u32 hash, String const &key) {
 	MapFindResult fr = {MAP_SENTINEL, MAP_SENTINEL, MAP_SENTINEL};
 	if (h->hashes_count != 0) {
 		fr.hash_index = cast(MapIndex)(hash & (h->hashes_count-1));
@@ -126,7 +126,7 @@ gb_internal MapFindResult string_map__find(StringMap<T> *h, u32 hash, String con
 }
 
 template <typename T>
-gb_internal MapFindResult string_map__find_from_entry(StringMap<T> *h, StringMapEntry<T> *e) {
+static MapFindResult string_map__find_from_entry(StringMap<T> *h, StringMapEntry<T> *e) {
 	MapFindResult fr = {MAP_SENTINEL, MAP_SENTINEL, MAP_SENTINEL};
 	if (h->hashes_count != 0) {
 		fr.hash_index  = cast(MapIndex)(e->hash & (h->hashes_count-1));
@@ -144,7 +144,7 @@ gb_internal MapFindResult string_map__find_from_entry(StringMap<T> *h, StringMap
 }
 
 template <typename T>
-gb_internal b32 string_map__full(StringMap<T> *h) {
+static b32 string_map__full(StringMap<T> *h) {
 	return 0.75f * h->hashes_count <= h->count;
 }
 
@@ -156,7 +156,7 @@ gb_inline void string_map_grow(StringMap<T> *h) {
 
 
 template <typename T>
-gb_internal void string_map_reset_entries(StringMap<T> *h) {
+static void string_map_reset_entries(StringMap<T> *h) {
 	for (u32 i = 0; i < h->hashes_count; i++) {
 		h->hashes[i] = MAP_SENTINEL;
 	}
@@ -174,7 +174,7 @@ gb_internal void string_map_reset_entries(StringMap<T> *h) {
 }
 
 template <typename T>
-gb_internal void string_map_reserve(StringMap<T> *h, usize cap) {
+static void string_map_reserve(StringMap<T> *h, usize cap) {
 	if (h->count*2 < h->hashes_count) {
 		return;
 	}
@@ -184,7 +184,7 @@ gb_internal void string_map_reserve(StringMap<T> *h, usize cap) {
 }
 
 template <typename T>
-gb_internal T *string_map_get(StringMap<T> *h, u32 hash, String const &key) {
+static T *string_map_get(StringMap<T> *h, u32 hash, String const &key) {
 	MapFindResult fr = {MAP_SENTINEL, MAP_SENTINEL, MAP_SENTINEL};
 	if (h->hashes_count != 0) {
 		fr.hash_index = cast(MapIndex)(hash & (h->hashes_count-1));
@@ -203,46 +203,46 @@ gb_internal T *string_map_get(StringMap<T> *h, u32 hash, String const &key) {
 
 
 template <typename T>
-gb_internal gb_inline T *string_map_get(StringMap<T> *h, StringHashKey const &key) {
+static gb_inline T *string_map_get(StringMap<T> *h, StringHashKey const &key) {
 	return string_map_get(h, key.hash, key.string);
 }
 
 template <typename T>
-gb_internal gb_inline T *string_map_get(StringMap<T> *h, String const &key) {
+static gb_inline T *string_map_get(StringMap<T> *h, String const &key) {
 	return string_map_get(h, string_hash(key), key);
 }
 
 template <typename T>
-gb_internal gb_inline T *string_map_get(StringMap<T> *h, char const *key) {
+static gb_inline T *string_map_get(StringMap<T> *h, char const *key) {
 	String k = make_string_c(key);
 	return string_map_get(h, string_hash(k), k);
 }
 
 template <typename T>
-gb_internal T &string_map_must_get(StringMap<T> *h, u32 hash, String const &key) {
+static T &string_map_must_get(StringMap<T> *h, u32 hash, String const &key) {
 	isize index = string_map__find(h, hash, key).entry_index;
 	GB_ASSERT(index != MAP_SENTINEL);
 	return h->entries[index].value;
 }
 
 template <typename T>
-gb_internal T &string_map_must_get(StringMap<T> *h, StringHashKey const &key) {
+static T &string_map_must_get(StringMap<T> *h, StringHashKey const &key) {
 	return string_map_must_get(h, key.hash, key.string);
 }
 
 template <typename T>
-gb_internal gb_inline T &string_map_must_get(StringMap<T> *h, String const &key) {
+static gb_inline T &string_map_must_get(StringMap<T> *h, String const &key) {
 	return string_map_must_get(h, string_hash(key), key);
 }
 
 template <typename T>
-gb_internal gb_inline T &string_map_must_get(StringMap<T> *h, char const *key) {
+static gb_inline T &string_map_must_get(StringMap<T> *h, char const *key) {
 	String k = make_string_c(key);
 	return string_map_must_get(h, string_hash(k), k);
 }
 
 template <typename T>
-gb_internal void string_map_set(StringMap<T> *h, u32 hash, String const &key, T const &value) {
+static void string_map_set(StringMap<T> *h, u32 hash, String const &key, T const &value) {
 	MapIndex index;
 	MapFindResult fr;
 	if (h->hashes_count == 0) {
@@ -267,23 +267,23 @@ gb_internal void string_map_set(StringMap<T> *h, u32 hash, String const &key, T 
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_set(StringMap<T> *h, String const &key, T const &value) {
+static gb_inline void string_map_set(StringMap<T> *h, String const &key, T const &value) {
 	string_map_set(h, string_hash_string(key), value);
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_set(StringMap<T> *h, char const *key, T const &value) {
+static gb_inline void string_map_set(StringMap<T> *h, char const *key, T const &value) {
 	string_map_set(h, string_hash_string(make_string_c(key)), value);
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_set(StringMap<T> *h, StringHashKey const &key, T const &value) {
+static gb_inline void string_map_set(StringMap<T> *h, StringHashKey const &key, T const &value) {
 	string_map_set(h, key.hash, key.string, value);
 }
 
 
 template <typename T>
-gb_internal gb_inline void string_map_clear(StringMap<T> *h) {
+static gb_inline void string_map_clear(StringMap<T> *h) {
 	h->count = 0;
 	for (u32 i = 0; i < h->hashes_count; i++) {
 		h->hashes[i] = MAP_SENTINEL;
@@ -293,22 +293,22 @@ gb_internal gb_inline void string_map_clear(StringMap<T> *h) {
 
 
 template <typename T>
-gb_internal StringMapEntry<T> *begin(StringMap<T> &m) noexcept {
+static StringMapEntry<T> *begin(StringMap<T> &m) noexcept {
 	return m.entries;
 }
 template <typename T>
-gb_internal StringMapEntry<T> const *begin(StringMap<T> const &m) noexcept {
+static StringMapEntry<T> const *begin(StringMap<T> const &m) noexcept {
 	return m.entries;
 }
 
 
 template <typename T>
-gb_internal StringMapEntry<T> *end(StringMap<T> &m) noexcept {
+static StringMapEntry<T> *end(StringMap<T> &m) noexcept {
 	return m.entries + m.count;
 }
 
 template <typename T>
-gb_internal StringMapEntry<T> const *end(StringMap<T> const &m) noexcept {
+static StringMapEntry<T> const *end(StringMap<T> const &m) noexcept {
 	return m.entries + m.count;
 }
 
@@ -329,44 +329,44 @@ struct StringMap {
 };
 
 
-template <typename T> gb_internal void string_map_init    (StringMap<T> *h, usize capacity = 16);
-template <typename T> gb_internal void string_map_destroy (StringMap<T> *h);
+template <typename T> static void string_map_init    (StringMap<T> *h, usize capacity = 16);
+template <typename T> static void string_map_destroy (StringMap<T> *h);
 
-template <typename T> gb_internal T *  string_map_get     (StringMap<T> *h, char const *key);
-template <typename T> gb_internal T *  string_map_get     (StringMap<T> *h, String const &key);
-template <typename T> gb_internal T *  string_map_get     (StringMap<T> *h, StringHashKey const &key);
+template <typename T> static T *  string_map_get     (StringMap<T> *h, char const *key);
+template <typename T> static T *  string_map_get     (StringMap<T> *h, String const &key);
+template <typename T> static T *  string_map_get     (StringMap<T> *h, StringHashKey const &key);
 
-template <typename T> gb_internal T &  string_map_must_get(StringMap<T> *h, char const *key);
-template <typename T> gb_internal T &  string_map_must_get(StringMap<T> *h, String const &key);
-template <typename T> gb_internal T &  string_map_must_get(StringMap<T> *h, StringHashKey const &key);
+template <typename T> static T &  string_map_must_get(StringMap<T> *h, char const *key);
+template <typename T> static T &  string_map_must_get(StringMap<T> *h, String const &key);
+template <typename T> static T &  string_map_must_get(StringMap<T> *h, StringHashKey const &key);
 
-template <typename T> gb_internal void string_map_set     (StringMap<T> *h, char const *key,   T const &value);
-template <typename T> gb_internal void string_map_set     (StringMap<T> *h, String const &key, T const &value);
-template <typename T> gb_internal void string_map_set     (StringMap<T> *h, StringHashKey const &key, T const &value);
+template <typename T> static void string_map_set     (StringMap<T> *h, char const *key,   T const &value);
+template <typename T> static void string_map_set     (StringMap<T> *h, String const &key, T const &value);
+template <typename T> static void string_map_set     (StringMap<T> *h, StringHashKey const &key, T const &value);
 
-// template <typename T> gb_internal void string_map_remove  (StringMap<T> *h, StringHashKey const &key);
-template <typename T> gb_internal void string_map_clear   (StringMap<T> *h);
-template <typename T> gb_internal void string_map_grow    (StringMap<T> *h);
-template <typename T> gb_internal void string_map_reserve (StringMap<T> *h, usize new_count);
+// template <typename T> static void string_map_remove  (StringMap<T> *h, StringHashKey const &key);
+template <typename T> static void string_map_clear   (StringMap<T> *h);
+template <typename T> static void string_map_grow    (StringMap<T> *h);
+template <typename T> static void string_map_reserve (StringMap<T> *h, usize new_count);
 
-gb_internal gbAllocator string_map_allocator(void) {
+static gbAllocator string_map_allocator(void) {
 	return heap_allocator();
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_init(StringMap<T> *h, usize capacity) {
+static gb_inline void string_map_init(StringMap<T> *h, usize capacity) {
 	capacity = next_pow2_isize(capacity);
 	string_map_reserve(h, capacity);
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_destroy(StringMap<T> *h) {
+static gb_inline void string_map_destroy(StringMap<T> *h) {
 	gb_free(string_map_allocator(), h->entries);
 }
 
 
 template <typename T>
-gb_internal void string_map__insert(StringMap<T> *h, u32 hash, String const &key, T const &value) {
+static void string_map__insert(StringMap<T> *h, u32 hash, String const &key, T const &value) {
 	if (h->count+1 >= h->capacity) {
 		string_map_grow(h);
 	}
@@ -392,7 +392,7 @@ gb_internal void string_map__insert(StringMap<T> *h, u32 hash, String const &key
 }
 
 template <typename T>
-gb_internal b32 string_map__full(StringMap<T> *h) {
+static b32 string_map__full(StringMap<T> *h) {
 	return 0.75f * h->count <= h->capacity;
 }
 
@@ -404,7 +404,7 @@ gb_inline void string_map_grow(StringMap<T> *h) {
 
 
 template <typename T>
-gb_internal void string_map_reserve(StringMap<T> *h, usize cap) {
+static void string_map_reserve(StringMap<T> *h, usize cap) {
 	if (cap < h->capacity) {
 		return;
 	}
@@ -428,7 +428,7 @@ gb_internal void string_map_reserve(StringMap<T> *h, usize cap) {
 }
 
 template <typename T>
-gb_internal T *string_map_get(StringMap<T> *h, u32 hash, String const &key) {
+static T *string_map_get(StringMap<T> *h, u32 hash, String const &key) {
 	if (h->count == 0) {
 		return nullptr;
 	}
@@ -451,46 +451,46 @@ gb_internal T *string_map_get(StringMap<T> *h, u32 hash, String const &key) {
 
 
 template <typename T>
-gb_internal gb_inline T *string_map_get(StringMap<T> *h, StringHashKey const &key) {
+static gb_inline T *string_map_get(StringMap<T> *h, StringHashKey const &key) {
 	return string_map_get(h, key.hash, key.string);
 }
 
 template <typename T>
-gb_internal gb_inline T *string_map_get(StringMap<T> *h, String const &key) {
+static gb_inline T *string_map_get(StringMap<T> *h, String const &key) {
 	return string_map_get(h, string_hash(key), key);
 }
 
 template <typename T>
-gb_internal gb_inline T *string_map_get(StringMap<T> *h, char const *key) {
+static gb_inline T *string_map_get(StringMap<T> *h, char const *key) {
 	String k = make_string_c(key);
 	return string_map_get(h, string_hash(k), k);
 }
 
 template <typename T>
-gb_internal T &string_map_must_get(StringMap<T> *h, u32 hash, String const &key) {
+static T &string_map_must_get(StringMap<T> *h, u32 hash, String const &key) {
 	T *found = string_map_get(h, hash, key);
 	GB_ASSERT(found != nullptr);
 	return *found;
 }
 
 template <typename T>
-gb_internal T &string_map_must_get(StringMap<T> *h, StringHashKey const &key) {
+static T &string_map_must_get(StringMap<T> *h, StringHashKey const &key) {
 	return string_map_must_get(h, key.hash, key.string);
 }
 
 template <typename T>
-gb_internal gb_inline T &string_map_must_get(StringMap<T> *h, String const &key) {
+static gb_inline T &string_map_must_get(StringMap<T> *h, String const &key) {
 	return string_map_must_get(h, string_hash(key), key);
 }
 
 template <typename T>
-gb_internal gb_inline T &string_map_must_get(StringMap<T> *h, char const *key) {
+static gb_inline T &string_map_must_get(StringMap<T> *h, char const *key) {
 	String k = make_string_c(key);
 	return string_map_must_get(h, string_hash(k), k);
 }
 
 template <typename T>
-gb_internal void string_map_set(StringMap<T> *h, u32 hash, String const &key, T const &value) {
+static void string_map_set(StringMap<T> *h, u32 hash, String const &key, T const &value) {
 	if (h->count == 0) {
 		string_map_grow(h);
 	}
@@ -503,23 +503,23 @@ gb_internal void string_map_set(StringMap<T> *h, u32 hash, String const &key, T 
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_set(StringMap<T> *h, String const &key, T const &value) {
+static gb_inline void string_map_set(StringMap<T> *h, String const &key, T const &value) {
 	string_map_set(h, string_hash_string(key), value);
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_set(StringMap<T> *h, char const *key, T const &value) {
+static gb_inline void string_map_set(StringMap<T> *h, char const *key, T const &value) {
 	string_map_set(h, string_hash_string(make_string_c(key)), value);
 }
 
 template <typename T>
-gb_internal gb_inline void string_map_set(StringMap<T> *h, StringHashKey const &key, T const &value) {
+static gb_inline void string_map_set(StringMap<T> *h, StringHashKey const &key, T const &value) {
 	string_map_set(h, key.hash, key.string, value);
 }
 
 
 template <typename T>
-gb_internal gb_inline void string_map_clear(StringMap<T> *h) {
+static gb_inline void string_map_clear(StringMap<T> *h) {
 	h->count = 0;
 	gb_zero_array(h->entries, h->capacity);
 }
@@ -554,19 +554,19 @@ struct StringMapIterator {
 
 
 template <typename T>
-gb_internal StringMapIterator<T> end(StringMap<T> &m) noexcept {
+static StringMapIterator<T> end(StringMap<T> &m) noexcept {
 	return StringMapIterator<T>{&m, m.capacity};
 }
 
 template <typename T>
-gb_internal StringMapIterator<T> const end(StringMap<T> const &m) noexcept {
+static StringMapIterator<T> const end(StringMap<T> const &m) noexcept {
 	return StringMapIterator<T>{&m, m.capacity};
 }
 
 
 
 template <typename T>
-gb_internal StringMapIterator<T> begin(StringMap<T> &m) noexcept {
+static StringMapIterator<T> begin(StringMap<T> &m) noexcept {
 	if (m.count == 0) {
 		return end(m);
 	}
@@ -581,7 +581,7 @@ gb_internal StringMapIterator<T> begin(StringMap<T> &m) noexcept {
 	return StringMapIterator<T>{&m, index};
 }
 template <typename T>
-gb_internal StringMapIterator<T> const begin(StringMap<T> const &m) noexcept {
+static StringMapIterator<T> const begin(StringMap<T> const &m) noexcept {
 	if (m.count == 0) {
 		return end(m);
 	}

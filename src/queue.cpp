@@ -16,13 +16,13 @@ struct MPSCQueue {
 	std::atomic<isize> count;
 };
 
-template <typename T> gb_internal void  mpsc_init   (MPSCQueue<T> *q, gbAllocator const &allocator);
-template <typename T> gb_internal void  mpsc_destroy(MPSCQueue<T> *q);
-template <typename T> gb_internal isize mpsc_enqueue(MPSCQueue<T> *q, T const &value);
-template <typename T> gb_internal bool  mpsc_dequeue(MPSCQueue<T> *q, T *value_);
+template <typename T> static void  mpsc_init   (MPSCQueue<T> *q, gbAllocator const &allocator);
+template <typename T> static void  mpsc_destroy(MPSCQueue<T> *q);
+template <typename T> static isize mpsc_enqueue(MPSCQueue<T> *q, T const &value);
+template <typename T> static bool  mpsc_dequeue(MPSCQueue<T> *q, T *value_);
 
 template <typename T>
-gb_internal void mpsc_init(MPSCQueue<T> *q, gbAllocator const &allocator) {
+static void mpsc_init(MPSCQueue<T> *q, gbAllocator const &allocator) {
 	q->sentinel.next.store(nullptr, std::memory_order_relaxed);
 	q->head.store(&q->sentinel, std::memory_order_relaxed);
 	q->tail.store(&q->sentinel, std::memory_order_relaxed);
@@ -30,24 +30,24 @@ gb_internal void mpsc_init(MPSCQueue<T> *q, gbAllocator const &allocator) {
 }
 
 template <typename T>
-gb_internal void mpsc_destroy(MPSCQueue<T> *q) {
+static void mpsc_destroy(MPSCQueue<T> *q) {
 	GB_ASSERT(q->count.load() == 0);
 }
 
 template <typename T>
-gb_internal MPSCNode<T> *mpsc_alloc_node(MPSCQueue<T> *q, T const &value) {
+static MPSCNode<T> *mpsc_alloc_node(MPSCQueue<T> *q, T const &value) {
 	auto new_node = gb_alloc_item(heap_allocator(), MPSCNode<T>);
 	new_node->value = value;
 	return new_node;
 }
 
 template <typename T>
-gb_internal void mpsc_free_node(MPSCQueue<T> *q, MPSCNode<T> *node) {
+static void mpsc_free_node(MPSCQueue<T> *q, MPSCNode<T> *node) {
 	// TODO(bill): determine a good way to handle the freed nodes rather than letting them leak
 }
 
 template <typename T>
-gb_internal isize mpsc_enqueue(MPSCQueue<T> *q, MPSCNode<T> *node) {
+static isize mpsc_enqueue(MPSCQueue<T> *q, MPSCNode<T> *node) {
 	node->next.store(nullptr, std::memory_order_relaxed);
 	auto prev = q->head.exchange(node, std::memory_order_acq_rel);
 	prev->next.store(node, std::memory_order_release);
@@ -56,14 +56,14 @@ gb_internal isize mpsc_enqueue(MPSCQueue<T> *q, MPSCNode<T> *node) {
 }
 
 template <typename T>
-gb_internal isize mpsc_enqueue(MPSCQueue<T> *q, T const &value) {
+static isize mpsc_enqueue(MPSCQueue<T> *q, T const &value) {
 	auto node = mpsc_alloc_node(q, value);
 	return mpsc_enqueue(q, node);
 }
 
 
 template <typename T>
-gb_internal bool mpsc_dequeue(MPSCQueue<T> *q, T *value_) {
+static bool mpsc_dequeue(MPSCQueue<T> *q, T *value_) {
 	auto tail = q->tail.load(std::memory_order_relaxed);
 	auto next = tail->next.load(std::memory_order_relaxed);
 	if (next) {
@@ -104,11 +104,11 @@ struct MPMCQueue {
 };
 
 
-gb_internal gbAllocator mpmc_allocator(void) {
+static gbAllocator mpmc_allocator(void) {
 	return heap_allocator();
 }
 
-gb_internal void mpmc_internal_init_indices(MPMCQueueAtomicIdx *indices, i32 offset, i32 size) {
+static void mpmc_internal_init_indices(MPMCQueueAtomicIdx *indices, i32 offset, i32 size) {
 	GB_ASSERT(offset % 8 == 0);
 	GB_ASSERT(size % 8 == 0);
 
@@ -128,7 +128,7 @@ gb_internal void mpmc_internal_init_indices(MPMCQueueAtomicIdx *indices, i32 off
 
 
 template <typename T>
-gb_internal void mpmc_init(MPMCQueue<T> *q, isize size_i) {
+static void mpmc_init(MPMCQueue<T> *q, isize size_i) {
 	if (size_i < 8) {
 		size_i = 8;
 	}
@@ -148,7 +148,7 @@ gb_internal void mpmc_init(MPMCQueue<T> *q, isize size_i) {
 
 
 template <typename T>
-gb_internal void mpmc_destroy(MPMCQueue<T> *q) {
+static void mpmc_destroy(MPMCQueue<T> *q) {
 	gbAllocator a = mpmc_allocator();
 	gb_free(a, q->nodes);
 	gb_free(a, q->indices);
@@ -156,7 +156,7 @@ gb_internal void mpmc_destroy(MPMCQueue<T> *q) {
 
 
 template <typename T>
-gb_internal bool mpmc_internal_grow(MPMCQueue<T> *q) {
+static bool mpmc_internal_grow(MPMCQueue<T> *q) {
 	gbAllocator a = mpmc_allocator();
 	mutex_lock(&q->mutex);
 	i32 old_size = q->mask+1;
@@ -180,7 +180,7 @@ gb_internal bool mpmc_internal_grow(MPMCQueue<T> *q) {
 }
 
 template <typename T>
-gb_internal i32 mpmc_enqueue(MPMCQueue<T> *q, T const &data) {
+static i32 mpmc_enqueue(MPMCQueue<T> *q, T const &data) {
 	GB_ASSERT(q->mask != 0);
 
 	i32 head_idx = q->head_idx.load(std::memory_order_relaxed);
@@ -210,7 +210,7 @@ gb_internal i32 mpmc_enqueue(MPMCQueue<T> *q, T const &data) {
 }
 
 template <typename T>
-gb_internal bool mpmc_dequeue(MPMCQueue<T> *q, T *data_) {
+static bool mpmc_dequeue(MPMCQueue<T> *q, T *data_) {
 	if (q->mask == 0) {
 		return false;
 	}

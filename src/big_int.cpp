@@ -37,87 +37,87 @@ void MP_FREE(void *mem, size_t size) {
 
 typedef mp_int BigInt;
 
-gb_internal void big_int_from_u64(BigInt *dst, u64 x);
-gb_internal void big_int_from_i64(BigInt *dst, i64 x);
-gb_internal void big_int_init    (BigInt *dst, BigInt const *src);
-gb_internal void big_int_from_string(BigInt *dst, String const &s, bool *success);
+static void big_int_from_u64(BigInt *dst, u64 x);
+static void big_int_from_i64(BigInt *dst, i64 x);
+static void big_int_init    (BigInt *dst, BigInt const *src);
+static void big_int_from_string(BigInt *dst, String const &s, bool *success);
 
-gb_internal void big_int_dealloc(BigInt *dst) {
+static void big_int_dealloc(BigInt *dst) {
 	mp_clear(dst);
 }
 
-gb_internal BigInt big_int_make(BigInt const *b, bool abs=false);
-gb_internal BigInt big_int_make_abs(BigInt const *b);
-gb_internal BigInt big_int_make_u64(u64 x);
-gb_internal BigInt big_int_make_i64(i64 x);
+static BigInt big_int_make(BigInt const *b, bool abs=false);
+static BigInt big_int_make_abs(BigInt const *b);
+static BigInt big_int_make_u64(u64 x);
+static BigInt big_int_make_i64(i64 x);
 
-gb_internal u64    big_int_to_u64   (BigInt const *x);
-gb_internal i64    big_int_to_i64   (BigInt const *x);
-gb_internal f64    big_int_to_f64   (BigInt const *x);
-gb_internal String big_int_to_string(gbAllocator allocator, BigInt const *x, u64 base = 10);
+static u64    big_int_to_u64   (BigInt const *x);
+static i64    big_int_to_i64   (BigInt const *x);
+static f64    big_int_to_f64   (BigInt const *x);
+static String big_int_to_string(gbAllocator allocator, BigInt const *x, u64 base = 10);
 
-gb_internal void big_int_add    (BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_sub    (BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_shl    (BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_shr    (BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_mul    (BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_mul_u64(BigInt *dst, BigInt const *x, u64 y);
-gb_internal void big_int_exp_u64(BigInt *dst, BigInt const *x, u64 y, bool *success);
+static void big_int_add    (BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_sub    (BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_shl    (BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_shr    (BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_mul    (BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_mul_u64(BigInt *dst, BigInt const *x, u64 y);
+static void big_int_exp_u64(BigInt *dst, BigInt const *x, u64 y, bool *success);
 
-gb_internal void big_int_quo_rem(BigInt const *x, BigInt const *y, BigInt *q, BigInt *r);
-gb_internal void big_int_quo    (BigInt *z, BigInt const *x, BigInt const *y);
-gb_internal void big_int_rem    (BigInt *z, BigInt const *x, BigInt const *y);
+static void big_int_quo_rem(BigInt const *x, BigInt const *y, BigInt *q, BigInt *r);
+static void big_int_quo    (BigInt *z, BigInt const *x, BigInt const *y);
+static void big_int_rem    (BigInt *z, BigInt const *x, BigInt const *y);
 
-gb_internal void big_int_and    (BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_and_not(BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_xor    (BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_or     (BigInt *dst, BigInt const *x, BigInt const *y);
-gb_internal void big_int_not    (BigInt *dst, BigInt const *x, i32 bit_count, bool is_signed);
+static void big_int_and    (BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_and_not(BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_xor    (BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_or     (BigInt *dst, BigInt const *x, BigInt const *y);
+static void big_int_not    (BigInt *dst, BigInt const *x, i32 bit_count, bool is_signed);
 
 
-gb_internal void big_int_add_eq(BigInt *dst, BigInt const *x);
-gb_internal void big_int_sub_eq(BigInt *dst, BigInt const *x);
-gb_internal void big_int_shl_eq(BigInt *dst, BigInt const *x);
-gb_internal void big_int_shr_eq(BigInt *dst, BigInt const *x);
-gb_internal void big_int_mul_eq(BigInt *dst, BigInt const *x);
+static void big_int_add_eq(BigInt *dst, BigInt const *x);
+static void big_int_sub_eq(BigInt *dst, BigInt const *x);
+static void big_int_shl_eq(BigInt *dst, BigInt const *x);
+static void big_int_shr_eq(BigInt *dst, BigInt const *x);
+static void big_int_mul_eq(BigInt *dst, BigInt const *x);
 
-gb_internal void big_int_quo_eq(BigInt *dst, BigInt const *x);
-gb_internal void big_int_rem_eq(BigInt *dst, BigInt const *x);
+static void big_int_quo_eq(BigInt *dst, BigInt const *x);
+static void big_int_rem_eq(BigInt *dst, BigInt const *x);
 
-gb_internal bool big_int_is_neg(BigInt const *x);
-gb_internal void big_int_neg(BigInt *dst, BigInt const *x);
+static bool big_int_is_neg(BigInt const *x);
+static void big_int_neg(BigInt *dst, BigInt const *x);
 
-gb_internal void big_int_add_eq(BigInt *dst, BigInt const *x) {
+static void big_int_add_eq(BigInt *dst, BigInt const *x) {
 	BigInt res = {};
 	big_int_init(&res, dst);
 	big_int_add(dst, &res, x);
 }
-gb_internal void big_int_sub_eq(BigInt *dst, BigInt const *x) {
+static void big_int_sub_eq(BigInt *dst, BigInt const *x) {
 	BigInt res = {};
 	big_int_init(&res, dst);
 	big_int_sub(dst, &res, x);
 }
-gb_internal void big_int_shl_eq(BigInt *dst, BigInt const *x) {
+static void big_int_shl_eq(BigInt *dst, BigInt const *x) {
 	BigInt res = {};
 	big_int_init(&res, dst);
 	big_int_shl(dst, &res, x);
 }
-gb_internal void big_int_shr_eq(BigInt *dst, BigInt const *x) {
+static void big_int_shr_eq(BigInt *dst, BigInt const *x) {
 	BigInt res = {};
 	big_int_init(&res, dst);
 	big_int_shr(dst, &res, x);
 }
-gb_internal void big_int_mul_eq(BigInt *dst, BigInt const *x) {
+static void big_int_mul_eq(BigInt *dst, BigInt const *x) {
 	BigInt res = {};
 	big_int_init(&res, dst);
 	big_int_mul(dst, &res, x);
 }
-gb_internal void big_int_quo_eq(BigInt *dst, BigInt const *x) {
+static void big_int_quo_eq(BigInt *dst, BigInt const *x) {
 	BigInt res = {};
 	big_int_init(&res, dst);
 	big_int_quo(dst, &res, x);
 }
-gb_internal void big_int_rem_eq(BigInt *dst, BigInt const *x) {
+static void big_int_rem_eq(BigInt *dst, BigInt const *x) {
 	BigInt res = {};
 	big_int_init(&res, dst);
 	big_int_rem(dst, &res, x);
@@ -125,7 +125,7 @@ gb_internal void big_int_rem_eq(BigInt *dst, BigInt const *x) {
 
 
 
-gb_internal i64 big_int_sign(BigInt const *x) {
+static i64 big_int_sign(BigInt const *x) {
 	if (mp_iszero(x)) {
 		return 0;
 	}
@@ -133,44 +133,44 @@ gb_internal i64 big_int_sign(BigInt const *x) {
 }
 
 
-gb_internal void big_int_from_u64(BigInt *dst, u64 x) {
+static void big_int_from_u64(BigInt *dst, u64 x) {
 	mp_init_u64(dst, x);
 }
-gb_internal void big_int_from_i64(BigInt *dst, i64 x) {
+static void big_int_from_i64(BigInt *dst, i64 x) {
 	mp_init_i64(dst, x);
 
 }
-gb_internal void big_int_init(BigInt *dst, BigInt const *src) {
+static void big_int_init(BigInt *dst, BigInt const *src) {
 	if (dst == src) {
 		return;
 	}
 	mp_init_copy(dst, src);
 }
 
-gb_internal BigInt big_int_make(BigInt const *b, bool abs) {
+static BigInt big_int_make(BigInt const *b, bool abs) {
 	BigInt i = {};
 	big_int_init(&i, b);
 	if (abs) mp_abs(&i, &i);
 	return i;
 }
-gb_internal BigInt big_int_make_abs(BigInt const *b) {
+static BigInt big_int_make_abs(BigInt const *b) {
 	return big_int_make(b, true);
 }
 
 
-gb_internal BigInt big_int_make_u64(u64 x) {
+static BigInt big_int_make_u64(u64 x) {
 	BigInt i = {};
 	big_int_from_u64(&i, x);
 	return i;
 }
-gb_internal BigInt big_int_make_i64(i64 x) {
+static BigInt big_int_make_i64(i64 x) {
 	BigInt i = {};
 	big_int_from_i64(&i, x);
 	return i;
 }
 
 
-gb_internal void big_int_from_string(BigInt *dst, String const &s, bool *success) {
+static void big_int_from_string(BigInt *dst, String const &s, bool *success) {
 	*success = true;
 
 	bool is_negative = false;
@@ -264,73 +264,73 @@ gb_internal void big_int_from_string(BigInt *dst, String const &s, bool *success
 
 
 
-gb_internal u64 big_int_to_u64(BigInt const *x) {
+static u64 big_int_to_u64(BigInt const *x) {
 	GB_ASSERT(x->sign == 0);
 	return mp_get_u64(x);
 }
 
-gb_internal i64 big_int_to_i64(BigInt const *x) {
+static i64 big_int_to_i64(BigInt const *x) {
 	return mp_get_i64(x);
 }
 
-gb_internal f64 big_int_to_f64(BigInt const *x) {
+static f64 big_int_to_f64(BigInt const *x) {
 	return mp_get_double(x);
 }
 
 
-gb_internal void big_int_neg(BigInt *dst, BigInt const *x) {
+static void big_int_neg(BigInt *dst, BigInt const *x) {
 	mp_neg(x, dst);
 }
 
 
-gb_internal int big_int_cmp(BigInt const *x, BigInt const *y) {
+static int big_int_cmp(BigInt const *x, BigInt const *y) {
 	return mp_cmp(x, y);
 }
 
-gb_internal int big_int_cmp_zero(BigInt const *x) {
+static int big_int_cmp_zero(BigInt const *x) {
 	if (mp_iszero(x)) {
 		return 0;
 	}
 	return x->sign ? -1 : +1;
 }
 
-gb_internal bool big_int_is_zero(BigInt const *x) {
+static bool big_int_is_zero(BigInt const *x) {
 	return mp_iszero(x);
 }
 
 
 
 
-gb_internal void big_int_add(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_add(BigInt *dst, BigInt const *x, BigInt const *y) {
 	mp_add(x, y, dst);
 }
 
 
-gb_internal void big_int_sub(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_sub(BigInt *dst, BigInt const *x, BigInt const *y) {
 	mp_sub(x, y, dst);
 }
 
 
-gb_internal void big_int_shl(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_shl(BigInt *dst, BigInt const *x, BigInt const *y) {
 	u32 yy = mp_get_u32(y);
 	mp_mul_2d(x, yy, dst);
 }
 
-gb_internal void big_int_shr(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_shr(BigInt *dst, BigInt const *x, BigInt const *y) {
 	u32 yy = mp_get_u32(y);
 	BigInt d = {};
 	mp_div_2d(x, yy, dst, &d);
 	big_int_dealloc(&d);
 }
 
-gb_internal void big_int_mul_u64(BigInt *dst, BigInt const *x, u64 y) {
+static void big_int_mul_u64(BigInt *dst, BigInt const *x, u64 y) {
 	BigInt d = {};
 	big_int_from_u64(&d, y);
 	mp_mul(x, &d, dst);
 	big_int_dealloc(&d);
 }
 
-gb_internal void big_int_exp_u64(BigInt *dst, BigInt const *x, u64 y, bool *success) {
+static void big_int_exp_u64(BigInt *dst, BigInt const *x, u64 y, bool *success) {
 	if (y > INT_MAX) {
 		*success = false;
 		return;
@@ -343,12 +343,12 @@ gb_internal void big_int_exp_u64(BigInt *dst, BigInt const *x, u64 y, bool *succ
 	*success = err == MP_OKAY;
 }
 
-gb_internal void big_int_mul(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_mul(BigInt *dst, BigInt const *x, BigInt const *y) {
 	mp_mul(x, y, dst);
 }
 
 
-gb_internal u64 leading_zeros_u64(u64 x) {
+static u64 leading_zeros_u64(u64 x) {
 #if defined(GB_COMPILER_MSVC)
 	#if defined(GB_ARCH_64_BIT)
 		return __lzcnt64(x);
@@ -381,23 +381,23 @@ gb_internal u64 leading_zeros_u64(u64 x) {
 //
 // q = x/y with the result truncated to zero
 // r = x - y*q
-gb_internal void big_int_quo_rem(BigInt const *x, BigInt const *y, BigInt *q_, BigInt *r_) {
+static void big_int_quo_rem(BigInt const *x, BigInt const *y, BigInt *q_, BigInt *r_) {
 	mp_div(x, y, q_, r_);
 }
 
-gb_internal void big_int_quo(BigInt *z, BigInt const *x, BigInt const *y) {
+static void big_int_quo(BigInt *z, BigInt const *x, BigInt const *y) {
 	BigInt r = {};
 	big_int_quo_rem(x, y, z, &r);
 	big_int_dealloc(&r);
 }
 
-gb_internal void big_int_rem(BigInt *z, BigInt const *x, BigInt const *y) {
+static void big_int_rem(BigInt *z, BigInt const *x, BigInt const *y) {
 	BigInt q = {};
 	big_int_quo_rem(x, y, &q, z);
 	big_int_dealloc(&q);
 }
 
-gb_internal void big_int_euclidean_mod(BigInt *z, BigInt const *x, BigInt const *y) {
+static void big_int_euclidean_mod(BigInt *z, BigInt const *x, BigInt const *y) {
 	BigInt y0 = {};
 	big_int_init(&y0, y);
 
@@ -414,11 +414,11 @@ gb_internal void big_int_euclidean_mod(BigInt *z, BigInt const *x, BigInt const 
 
 
 
-gb_internal void big_int_and(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_and(BigInt *dst, BigInt const *x, BigInt const *y) {
 	mp_and(x, y, dst);
 }
 
-gb_internal void big_int_and_not(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_and_not(BigInt *dst, BigInt const *x, BigInt const *y) {
 	if (mp_iszero(x)) {
 		big_int_init(dst, y);
 		return;
@@ -481,23 +481,23 @@ gb_internal void big_int_and_not(BigInt *dst, BigInt const *x, BigInt const *y) 
 	return;
 }
 
-gb_internal void big_int_xor(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_xor(BigInt *dst, BigInt const *x, BigInt const *y) {
 	mp_xor(x, y, dst);
 }
 
 
-gb_internal void big_int_or(BigInt *dst, BigInt const *x, BigInt const *y) {
+static void big_int_or(BigInt *dst, BigInt const *x, BigInt const *y) {
 	mp_or(x, y, dst);
 }
 
-gb_internal void debug_print_big_int(BigInt const *x) {
+static void debug_print_big_int(BigInt const *x) {
 	TEMPORARY_ALLOCATOR_GUARD();
 	String s = big_int_to_string(temporary_allocator(), x, 10);
 	gb_printf_err("[DEBUG] %.*s\n", LIT(s));
 }
 
 
-gb_internal void big_int_not(BigInt *dst, BigInt const *x, i32 bit_count, bool is_signed) {
+static void big_int_not(BigInt *dst, BigInt const *x, i32 bit_count, bool is_signed) {
 	GB_ASSERT(bit_count >= 0);
 	if (bit_count == 0) {
 		big_int_from_u64(dst, 0);
@@ -545,7 +545,7 @@ gb_internal void big_int_not(BigInt *dst, BigInt const *x, i32 bit_count, bool i
 	big_int_dealloc(&v);
 }
 
-gb_internal bool big_int_is_neg(BigInt const *x) {
+static bool big_int_is_neg(BigInt const *x) {
 	if (x == nullptr) {
 		return false;
 	}
@@ -553,7 +553,7 @@ gb_internal bool big_int_is_neg(BigInt const *x) {
 }
 
 
-gb_internal char digit_to_char(u8 digit) {
+static char digit_to_char(u8 digit) {
 	GB_ASSERT(digit < 16);
 	if (digit <= 9) {
 		return digit + '0';
@@ -563,7 +563,7 @@ gb_internal char digit_to_char(u8 digit) {
 	return '0';
 }
 
-gb_internal String big_int_to_string(gbAllocator allocator, BigInt const *x, u64 base) {
+static String big_int_to_string(gbAllocator allocator, BigInt const *x, u64 base) {
 	GB_ASSERT(base <= 16);
 
 	if (mp_iszero(x)) {
@@ -636,6 +636,6 @@ gb_internal String big_int_to_string(gbAllocator allocator, BigInt const *x, u64
 	return make_string(cast(u8 *)buf.data, buf.count);
 }
 
-gb_internal int big_int_log2(BigInt const *x) {
+static int big_int_log2(BigInt const *x) {
 	return mp_count_bits(x) - 1;
 }

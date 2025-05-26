@@ -1,6 +1,6 @@
-gb_internal bool is_in_doc_writer(void);
+static bool is_in_doc_writer(void);
 
-gb_internal GB_COMPARE_PROC(type_info_pair_cmp) {
+static GB_COMPARE_PROC(type_info_pair_cmp) {
 	TypeInfoPair *x = cast(TypeInfoPair *)a;
 	TypeInfoPair *y = cast(TypeInfoPair *)b;
 	if (x->hash == y->hash) {
@@ -10,11 +10,11 @@ gb_internal GB_COMPARE_PROC(type_info_pair_cmp) {
 }
 
 
-gb_internal gbAllocator type_set_allocator(void) {
+static gbAllocator type_set_allocator(void) {
 	return heap_allocator();
 }
 
-gb_internal TypeSetIterator begin(TypeSet &set) noexcept {
+static TypeSetIterator begin(TypeSet &set) noexcept {
 	usize index = 0;
 	while (index < set.capacity) {
 		TypeInfoPair key = set.keys[index];
@@ -25,12 +25,12 @@ gb_internal TypeSetIterator begin(TypeSet &set) noexcept {
 	}
 	return TypeSetIterator{&set, index};
 }
-gb_internal TypeSetIterator end(TypeSet &set) noexcept {
+static TypeSetIterator end(TypeSet &set) noexcept {
 	return TypeSetIterator{&set, set.capacity};
 }
 
 
-gb_internal void type_set_init(TypeSet *s, isize capacity) {
+static void type_set_init(TypeSet *s, isize capacity) {
 	GB_ASSERT(s->keys == nullptr);
 	if (capacity != 0) {
 		capacity = next_pow2_isize(gb_max(16, capacity));
@@ -41,7 +41,7 @@ gb_internal void type_set_init(TypeSet *s, isize capacity) {
 	s->capacity = capacity;
 }
 
-gb_internal void type_set_destroy(TypeSet *s) {
+static void type_set_destroy(TypeSet *s) {
 	gb_free(type_set_allocator(), s->keys);
 	s->keys = nullptr;
 	s->count = 0;
@@ -49,7 +49,7 @@ gb_internal void type_set_destroy(TypeSet *s) {
 }
 
 
-gb_internal isize type_set__find(TypeSet *s, TypeInfoPair pair) {
+static isize type_set__find(TypeSet *s, TypeInfoPair pair) {
 	GB_ASSERT(pair.type != nullptr);
 	GB_ASSERT(pair.hash != 0);
 	if (s->count != 0) {
@@ -68,7 +68,7 @@ gb_internal isize type_set__find(TypeSet *s, TypeInfoPair pair) {
 	}
 	return -1;
 }
-gb_internal isize type_set__find(TypeSet *s, Type *ptr) {
+static isize type_set__find(TypeSet *s, Type *ptr) {
 	GB_ASSERT(ptr != 0);
 	if (s->count != 0) {
 		usize hash = cast(usize)type_hash_canonical_type(ptr);
@@ -87,11 +87,11 @@ gb_internal isize type_set__find(TypeSet *s, Type *ptr) {
 	return -1;
 }
 
-gb_internal bool type_set__full(TypeSet *s) {
+static bool type_set__full(TypeSet *s) {
 	return 0.75f * s->capacity <= s->count;
 }
 
-gb_internal gb_inline void type_set_grow(TypeSet *old_set) {
+static gb_inline void type_set_grow(TypeSet *old_set) {
 	if (old_set->capacity == 0) {
 		type_set_init(old_set);
 		return;
@@ -112,13 +112,13 @@ gb_internal gb_inline void type_set_grow(TypeSet *old_set) {
 }
 
 
-gb_internal gb_inline bool type_set_exists(TypeSet *s, Type *ptr) {
+static gb_inline bool type_set_exists(TypeSet *s, Type *ptr) {
 	return type_set__find(s, ptr) >= 0;
 }
-gb_internal gb_inline bool type_set_exists(TypeSet *s, TypeInfoPair pair) {
+static gb_inline bool type_set_exists(TypeSet *s, TypeInfoPair pair) {
 	return type_set__find(s, pair) >= 0;
 }
-gb_internal gb_inline TypeInfoPair *type_set_retrieve(TypeSet *s, Type *type) {
+static gb_inline TypeInfoPair *type_set_retrieve(TypeSet *s, Type *type) {
 	isize index = type_set__find(s, type);
 	if (index >= 0) {
 		return &s->keys[index];
@@ -127,7 +127,7 @@ gb_internal gb_inline TypeInfoPair *type_set_retrieve(TypeSet *s, Type *type) {
 }
 
 
-gb_internal bool type_set_update(TypeSet *s, TypeInfoPair pair) { // returns true if it previously existsed
+static bool type_set_update(TypeSet *s, TypeInfoPair pair) { // returns true if it previously existsed
 	if (type_set_exists(s, pair)) {
 		return true;
 	}
@@ -159,25 +159,25 @@ gb_internal bool type_set_update(TypeSet *s, TypeInfoPair pair) { // returns tru
 	return false;
 }
 
-gb_internal bool type_set_update(TypeSet *s, Type *ptr) { // returns true if it previously existsed
+static bool type_set_update(TypeSet *s, Type *ptr) { // returns true if it previously existsed
 	TypeInfoPair pair = {ptr, type_hash_canonical_type(ptr)};
 	return type_set_update(s, pair);
 }
 
 
-gb_internal Type *type_set_add(TypeSet *s, Type *ptr) {
+static Type *type_set_add(TypeSet *s, Type *ptr) {
 	type_set_update(s, ptr);
 	return ptr;
 }
 
-gb_internal Type *type_set_add(TypeSet *s, TypeInfoPair pair) {
+static Type *type_set_add(TypeSet *s, TypeInfoPair pair) {
 	type_set_update(s, pair);
 	return pair.type;
 }
 
 
 
-gb_internal void type_set_remove(TypeSet *s, Type *ptr) {
+static void type_set_remove(TypeSet *s, Type *ptr) {
 	isize index = type_set__find(s, ptr);
 	if (index >= 0) {
 		GB_ASSERT(s->count > 0);
@@ -187,7 +187,7 @@ gb_internal void type_set_remove(TypeSet *s, Type *ptr) {
 	}
 }
 
-gb_internal gb_inline void type_set_clear(TypeSet *s) {
+static gb_inline void type_set_clear(TypeSet *s) {
 	s->count = 0;
 	gb_zero_size(s->keys, s->capacity*gb_size_of(*s->keys));
 }
@@ -257,7 +257,7 @@ void type_writer_make_hasher(TypeWriter *w, u64 *hash) {
 
 
 
-gb_internal void write_canonical_params(TypeWriter *w, Type *params) {
+static void write_canonical_params(TypeWriter *w, Type *params) {
 	type_writer_appendc(w, "(");
 	defer (type_writer_appendc(w, ")"));
 
@@ -324,7 +324,7 @@ gb_internal void write_canonical_params(TypeWriter *w, Type *params) {
 	return;
 }
 
-gb_internal u64 type_hash_canonical_type(Type *type) {
+static u64 type_hash_canonical_type(Type *type) {
 	if (type == nullptr) {
 		return 0;
 	}
@@ -336,7 +336,7 @@ gb_internal u64 type_hash_canonical_type(Type *type) {
 	return hash ? hash : 1;
 }
 
-gb_internal String type_to_canonical_string(gbAllocator allocator, Type *type) {
+static String type_to_canonical_string(gbAllocator allocator, Type *type) {
 	TypeWriter w = {};
 	type_writer_make_string(&w, allocator);
 	write_type_to_canonical_string(&w, type);
@@ -345,7 +345,7 @@ gb_internal String type_to_canonical_string(gbAllocator allocator, Type *type) {
 	return make_string(cast(u8 const *)s, gb_string_length(s));
 }
 
-gb_internal gbString temp_canonical_string(Type *type) {
+static gbString temp_canonical_string(Type *type) {
 	TypeWriter w = {};
 	type_writer_make_string(&w, temporary_allocator());
 	write_type_to_canonical_string(&w, type);
@@ -353,7 +353,7 @@ gb_internal gbString temp_canonical_string(Type *type) {
 	return cast(gbString)w.user_data;
 }
 
-gb_internal gbString string_canonical_entity_name(gbAllocator allocator, Entity *e) {
+static gbString string_canonical_entity_name(gbAllocator allocator, Entity *e) {
 	TypeWriter w = {};
 	type_writer_make_string(&w, allocator);
 	write_canonical_entity_name(&w, e);
@@ -362,7 +362,7 @@ gb_internal gbString string_canonical_entity_name(gbAllocator allocator, Entity 
 
 
 
-gb_internal void write_canonical_parent_prefix(TypeWriter *w, Entity *e) {
+static void write_canonical_parent_prefix(TypeWriter *w, Entity *e) {
 	GB_ASSERT(e != nullptr);
 	if (e->kind == Entity_Procedure || e->kind == Entity_TypeName) {
 		if (e->kind == Entity_Procedure && (e->Procedure.is_export || e->Procedure.is_foreign)) {
@@ -412,7 +412,7 @@ gb_internal void write_canonical_parent_prefix(TypeWriter *w, Entity *e) {
 	return;
 }
 
-gb_internal void write_canonical_entity_name(TypeWriter *w, Entity *e) {
+static void write_canonical_entity_name(TypeWriter *w, Entity *e) {
 	GB_ASSERT(e != nullptr);
 
 	if (e->token.string == "_") {
@@ -541,7 +541,7 @@ write_base_name:
 
 
 // NOTE(bill): This exists so that we deterministically hash a type by serializing it to a canonical string
-gb_internal void write_type_to_canonical_string(TypeWriter *w, Type *type) {
+static void write_type_to_canonical_string(TypeWriter *w, Type *type) {
 	if (type == nullptr) {
 		type_writer_appendc(w, CANONICAL_NONE_TYPE); // none/void type
 		return;

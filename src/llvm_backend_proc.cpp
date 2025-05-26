@@ -1,4 +1,4 @@
-gb_internal LLVMValueRef lb_call_intrinsic(lbProcedure *p, const char *name, LLVMValueRef* args, unsigned arg_count, LLVMTypeRef* types, unsigned type_count) {
+static LLVMValueRef lb_call_intrinsic(lbProcedure *p, const char *name, LLVMValueRef* args, unsigned arg_count, LLVMTypeRef* types, unsigned type_count) {
 	unsigned id = LLVMLookupIntrinsicID(name, gb_strlen(name));
 	GB_ASSERT_MSG(id != 0, "Unable to find %s", name);
 	LLVMValueRef ip = LLVMGetIntrinsicDeclaration(p->module->mod, id, types, type_count);
@@ -6,11 +6,11 @@ gb_internal LLVMValueRef lb_call_intrinsic(lbProcedure *p, const char *name, LLV
 	return LLVMBuildCall2(p->builder, call_type, ip, args, arg_count, "");
 }
 
-gb_internal void lb_mem_copy_overlapping(lbProcedure *p, lbValue dst, lbValue src, lbValue len, bool is_volatile) {
+static void lb_mem_copy_overlapping(lbProcedure *p, lbValue dst, lbValue src, lbValue len, bool is_volatile) {
 	dst = lb_emit_conv(p, dst, t_rawptr);
 	src = lb_emit_conv(p, src, t_rawptr);
 	len = lb_emit_conv(p, len, t_int);
-	
+
 	char const *name = "llvm.memmove";
 	if (LLVMIsConstant(len.value)) {
 		i64 const_len = cast(i64)LLVMConstIntGetSExtValue(len.value);
@@ -35,11 +35,11 @@ gb_internal void lb_mem_copy_overlapping(lbProcedure *p, lbValue dst, lbValue sr
 
 
 
-gb_internal void lb_mem_copy_non_overlapping(lbProcedure *p, lbValue dst, lbValue src, lbValue len, bool is_volatile) {
+static void lb_mem_copy_non_overlapping(lbProcedure *p, lbValue dst, lbValue src, lbValue len, bool is_volatile) {
 	dst = lb_emit_conv(p, dst, t_rawptr);
 	src = lb_emit_conv(p, src, t_rawptr);
 	len = lb_emit_conv(p, len, t_int);
-	
+
 	char const *name = "llvm.memcpy";
 	if (LLVMIsConstant(len.value)) {
 		i64 const_len = cast(i64)LLVMConstIntGetSExtValue(len.value);
@@ -64,7 +64,7 @@ gb_internal void lb_mem_copy_non_overlapping(lbProcedure *p, lbValue dst, lbValu
 }
 
 
-gb_internal lbProcedure *lb_create_procedure(lbModule *m, Entity *entity, bool ignore_body) {
+static lbProcedure *lb_create_procedure(lbModule *m, Entity *entity, bool ignore_body) {
 	GB_ASSERT(entity != nullptr);
 	GB_ASSERT(entity->kind == Entity_Procedure);
 	// Skip codegen for unspecialized polymorphic procedures
@@ -230,7 +230,7 @@ gb_internal lbProcedure *lb_create_procedure(lbModule *m, Entity *entity, bool i
 			if (entity->pkg != nullptr && entity->pkg->kind == Package_Runtime && p->body != nullptr) {
 				GB_ASSERT(entity->kind == Entity_Procedure);
 				String link_name = entity->Procedure.link_name;
-				if (entity->flags & EntityFlag_CustomLinkName && 
+				if (entity->flags & EntityFlag_CustomLinkName &&
 					link_name != "") {
 					if (string_starts_with(link_name, str_lit("__"))) {
 						LLVMSetLinkage(p->value, LLVMExternalLinkage);
@@ -373,7 +373,7 @@ gb_internal lbProcedure *lb_create_procedure(lbModule *m, Entity *entity, bool i
 	return p;
 }
 
-gb_internal lbProcedure *lb_create_dummy_procedure(lbModule *m, String link_name, Type *type) {
+static lbProcedure *lb_create_dummy_procedure(lbModule *m, String link_name, Type *type) {
 	{
 		lbValue *found = string_map_get(&m->members, link_name);
 		GB_ASSERT_MSG(found == nullptr, "failed to create dummy procedure for: %.*s", LIT(link_name));
@@ -437,7 +437,7 @@ gb_internal lbProcedure *lb_create_dummy_procedure(lbModule *m, String link_name
 }
 
 
-// gb_internal lbValue lb_value_param(lbProcedure *p, Entity *e, Type *abi_type, i32 index, lbParamPasskind *kind_) {
+// static lbValue lb_value_param(lbProcedure *p, Entity *e, Type *abi_type, i32 index, lbParamPasskind *kind_) {
 // 	lbParamPasskind kind = lbParamPass_Value;
 
 // 	if (e != nullptr && !are_types_identical(abi_type, e->type)) {
@@ -480,7 +480,7 @@ gb_internal lbProcedure *lb_create_dummy_procedure(lbModule *m, String link_name
 
 
 
-gb_internal void lb_start_block(lbProcedure *p, lbBlock *b) {
+static void lb_start_block(lbProcedure *p, lbBlock *b) {
 	GB_ASSERT(b != nullptr);
 	if (!b->appended) {
 		b->appended = true;
@@ -490,7 +490,7 @@ gb_internal void lb_start_block(lbProcedure *p, lbBlock *b) {
 	p->curr_block = b;
 }
 
-gb_internal void lb_set_debug_position_to_procedure_begin(lbProcedure *p) {
+static void lb_set_debug_position_to_procedure_begin(lbProcedure *p) {
 	if (p->debug_info == nullptr) {
 		return;
 	}
@@ -507,7 +507,7 @@ gb_internal void lb_set_debug_position_to_procedure_begin(lbProcedure *p) {
 	}
 }
 
-gb_internal void lb_set_debug_position_to_procedure_end(lbProcedure *p) {
+static void lb_set_debug_position_to_procedure_end(lbProcedure *p) {
 	if (p->debug_info == nullptr) {
 		return;
 	}
@@ -524,7 +524,7 @@ gb_internal void lb_set_debug_position_to_procedure_end(lbProcedure *p) {
 	}
 }
 
-gb_internal void lb_begin_procedure_body(lbProcedure *p) {
+static void lb_begin_procedure_body(lbProcedure *p) {
 	DeclInfo *decl = decl_info_of_entity(p->entity);
 	if (decl != nullptr) {
 		for_array(i, decl->labels) {
@@ -758,7 +758,7 @@ gb_internal void lb_begin_procedure_body(lbProcedure *p) {
 	}
 }
 
-gb_internal void lb_end_procedure_body(lbProcedure *p) {
+static void lb_end_procedure_body(lbProcedure *p) {
 	lb_set_debug_position_to_procedure_begin(p);
 
 	LLVMPositionBuilderAtEnd(p->builder, p->decl_block->block);
@@ -795,7 +795,7 @@ gb_internal void lb_end_procedure_body(lbProcedure *p) {
 	LLVMDisposeBuilder(p->builder);
 }
 
-gb_internal void lb_build_nested_proc(lbProcedure *p, AstProcLit *pd, Entity *e) {
+static void lb_build_nested_proc(lbProcedure *p, AstProcLit *pd, Entity *e) {
 	GB_ASSERT(pd->body != nullptr);
 	lbModule *m = p->module;
 	auto *min_dep_set = &m->info->minimum_dependency_set;
@@ -841,7 +841,7 @@ gb_internal void lb_build_nested_proc(lbProcedure *p, AstProcLit *pd, Entity *e)
 
 
 
-gb_internal Array<lbValue> lb_value_to_array(lbProcedure *p, gbAllocator const &allocator, lbValue value) {
+static Array<lbValue> lb_value_to_array(lbProcedure *p, gbAllocator const &allocator, lbValue value) {
 	Array<lbValue> array = {};
 	Type *t = base_type(value.type);
 	if (t == nullptr) {
@@ -858,7 +858,7 @@ gb_internal Array<lbValue> lb_value_to_array(lbProcedure *p, gbAllocator const &
 
 
 
-gb_internal lbValue lb_emit_call_internal(lbProcedure *p, lbValue value, lbValue return_ptr, Array<lbValue> const &processed_args, Type *abi_rt, lbAddr context_ptr, ProcInlining inlining) {
+static lbValue lb_emit_call_internal(lbProcedure *p, lbValue value, lbValue return_ptr, Array<lbValue> const &processed_args, Type *abi_rt, lbAddr context_ptr, ProcInlining inlining) {
 	GB_ASSERT(p->module->ctx == LLVMGetTypeContext(LLVMTypeOf(value.value)));
 
 	unsigned arg_count = cast(unsigned)processed_args.count;
@@ -982,20 +982,20 @@ gb_internal lbValue lb_emit_call_internal(lbProcedure *p, lbValue value, lbValue
 }
 
 
-gb_internal lbValue lb_lookup_runtime_procedure(lbModule *m, String const &name) {
+static lbValue lb_lookup_runtime_procedure(lbModule *m, String const &name) {
 	AstPackage *pkg = m->info->runtime_package;
 	Entity *e = scope_lookup_current(pkg->scope, name);
 	return lb_find_procedure_value_from_entity(m, e);
 }
 
 
-gb_internal lbValue lb_emit_runtime_call(lbProcedure *p, char const *c_name, Array<lbValue> const &args) {
+static lbValue lb_emit_runtime_call(lbProcedure *p, char const *c_name, Array<lbValue> const &args) {
 	String name = make_string_c(c_name);
 	lbValue proc = lb_lookup_runtime_procedure(p->module, name);
 	return lb_emit_call(p, proc, args);
 }
 
-gb_internal lbValue lb_emit_conjugate(lbProcedure *p, lbValue val, Type *type) {
+static lbValue lb_emit_conjugate(lbProcedure *p, lbValue val, Type *type) {
 	lbValue res = {};
 	Type *t = val.type;
 	if (is_type_complex(t)) {
@@ -1046,7 +1046,7 @@ gb_internal lbValue lb_emit_conjugate(lbProcedure *p, lbValue val, Type *type) {
 	return lb_emit_load(p, res);
 }
 
-gb_internal lbValue lb_emit_call(lbProcedure *p, lbValue value, Array<lbValue> const &args, ProcInlining inlining) {
+static lbValue lb_emit_call(lbProcedure *p, lbValue value, Array<lbValue> const &args, ProcInlining inlining) {
 	lbModule *m = p->module;
 
 	Type *pt = base_type(value.type);
@@ -1288,7 +1288,7 @@ gb_internal lbValue lb_emit_call(lbProcedure *p, lbValue value, Array<lbValue> c
 	return result;
 }
 
-gb_internal LLVMValueRef llvm_splat_int(i64 count, LLVMTypeRef type, i64 value, bool is_signed=false) {
+static LLVMValueRef llvm_splat_int(i64 count, LLVMTypeRef type, i64 value, bool is_signed=false) {
 	LLVMValueRef v = LLVMConstInt(type, value, is_signed);
 	LLVMValueRef *values = gb_alloc_array(temporary_allocator(), LLVMValueRef, count);
 	for (i64 i = 0; i < count; i++) {
@@ -1298,7 +1298,7 @@ gb_internal LLVMValueRef llvm_splat_int(i64 count, LLVMTypeRef type, i64 value, 
 }
 
 
-gb_internal lbValue lb_build_builtin_simd_proc(lbProcedure *p, Ast *expr, TypeAndValue const &tv, BuiltinProcId builtin_id) {
+static lbValue lb_build_builtin_simd_proc(lbProcedure *p, Ast *expr, TypeAndValue const &tv, BuiltinProcId builtin_id) {
 	ast_node(ce, CallExpr, expr);
 
 	lbModule *m = p->module;
@@ -1919,7 +1919,7 @@ gb_internal lbValue lb_build_builtin_simd_proc(lbProcedure *p, Ast *expr, TypeAn
 }
 
 
-gb_internal lbValue lb_build_builtin_proc(lbProcedure *p, Ast *expr, TypeAndValue const &tv, BuiltinProcId id) {
+static lbValue lb_build_builtin_proc(lbProcedure *p, Ast *expr, TypeAndValue const &tv, BuiltinProcId id) {
 	ast_node(ce, CallExpr, expr);
 
 	if (BuiltinProc__simd_begin < id && id < BuiltinProc__simd_end) {
@@ -3278,7 +3278,7 @@ gb_internal lbValue lb_build_builtin_proc(lbProcedure *p, Ast *expr, TypeAndValu
 			default:
 				GB_PANIC("Unsupported platform");
 			}
-			
+
 			lbValue res = {};
 			res.value = LLVMBuildCall2(p->builder, func_type, inline_asm, args, arg_count, "");
 			res.type = t_uintptr;
@@ -3433,7 +3433,7 @@ gb_internal lbValue lb_build_builtin_proc(lbProcedure *p, Ast *expr, TypeAndValu
 			default:
 				GB_PANIC("Unsupported platform");
 			}
-			
+
  			lbValue res = {};
  			res.value = LLVMBuildCall2(p->builder, func_type, inline_asm, args, arg_count, "");
 			res.type = make_optional_ok_type(t_uintptr, true);
@@ -3686,7 +3686,7 @@ gb_internal lbValue lb_build_builtin_proc(lbProcedure *p, Ast *expr, TypeAndValu
 }
 
 
-gb_internal lbValue lb_handle_param_value(lbProcedure *p, Type *parameter_type, ParameterValue const &param_value, TypeProc *procedure_type, Ast* call_expression) {
+static lbValue lb_handle_param_value(lbProcedure *p, Type *parameter_type, ParameterValue const &param_value, TypeProc *procedure_type, Ast* call_expression) {
 	switch (param_value.kind) {
 	case ParameterValue_Constant:
 		if (is_type_constant_type(parameter_type)) {
@@ -3773,9 +3773,9 @@ gb_internal lbValue lb_handle_param_value(lbProcedure *p, Type *parameter_type, 
 }
 
 
-gb_internal lbValue lb_build_call_expr_internal(lbProcedure *p, Ast *expr);
+static lbValue lb_build_call_expr_internal(lbProcedure *p, Ast *expr);
 
-gb_internal lbValue lb_build_call_expr(lbProcedure *p, Ast *expr) {
+static lbValue lb_build_call_expr(lbProcedure *p, Ast *expr) {
 	expr = unparen_expr(expr);
 	ast_node(ce, CallExpr, expr);
 
@@ -3789,7 +3789,7 @@ gb_internal lbValue lb_build_call_expr(lbProcedure *p, Ast *expr) {
 	return res;
 }
 
-gb_internal void lb_add_values_to_array(lbProcedure *p, Array<lbValue> *args, lbValue value) {
+static void lb_add_values_to_array(lbProcedure *p, Array<lbValue> *args, lbValue value) {
 	if (is_type_tuple(value.type)) {
 		for_array(i, value.type->Tuple.variables) {
 			lbValue sub_value = lb_emit_struct_ev(p, value, cast(i32)i);
@@ -3800,7 +3800,7 @@ gb_internal void lb_add_values_to_array(lbProcedure *p, Array<lbValue> *args, lb
 	}
 }
 
-gb_internal lbValue lb_build_call_expr_internal(lbProcedure *p, Ast *expr) {
+static lbValue lb_build_call_expr_internal(lbProcedure *p, Ast *expr) {
 	lbModule *m = p->module;
 
 	TypeAndValue tv = type_and_value_of_expr(expr);

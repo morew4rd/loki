@@ -148,17 +148,17 @@ enum {
 	KEYWORD_HASH_TABLE_COUNT = 1<<9,
 	KEYWORD_HASH_TABLE_MASK = KEYWORD_HASH_TABLE_COUNT-1,
 };
-gb_global KeywordHashEntry keyword_hash_table[KEYWORD_HASH_TABLE_COUNT] = {};
+static KeywordHashEntry keyword_hash_table[KEYWORD_HASH_TABLE_COUNT] = {};
 GB_STATIC_ASSERT(Token__KeywordEnd-Token__KeywordBegin <= gb_count_of(keyword_hash_table));
-gb_global isize const min_keyword_size = 2;
-gb_global isize max_keyword_size = 11;
-gb_global bool keyword_indices[16] = {};
+static isize const min_keyword_size = 2;
+static isize max_keyword_size = 11;
+static bool keyword_indices[16] = {};
 
 
-gb_internal gb_inline u32 keyword_hash(u8 const *text, isize len) {
+static gb_inline u32 keyword_hash(u8 const *text, isize len) {
 	return fnv32a(text, len);
 }
-gb_internal void add_keyword_hash_entry(String const &s, TokenKind kind) {
+static void add_keyword_hash_entry(String const &s, TokenKind kind) {
 	max_keyword_size = gb_max(max_keyword_size, s.len);
 
 	keyword_indices[s.len] = true;
@@ -173,7 +173,7 @@ gb_internal void add_keyword_hash_entry(String const &s, TokenKind kind) {
 	entry->kind = kind;
 	entry->text = s;
 }
-gb_internal void init_keyword_hash_table(void) {
+static void init_keyword_hash_table(void) {
 	for (i32 kind = Token__KeywordBegin+1; kind < Token__KeywordEnd; kind++) {
 		add_keyword_hash_entry(token_strings[kind], cast(TokenKind)kind);
 	}
@@ -192,12 +192,12 @@ gb_internal void init_keyword_hash_table(void) {
 	GB_ASSERT(max_keyword_size < 16);
 }
 
-gb_global Array<String>           global_file_path_strings; // index is file id
-gb_global Array<struct AstFile *> global_files; // index is file id
-gb_global BlockingMutex           global_files_mutex;
+static Array<String>           global_file_path_strings; // index is file id
+static Array<struct AstFile *> global_files; // index is file id
+static BlockingMutex           global_files_mutex;
 
-gb_internal String   get_file_path_string(i32 index);
-gb_internal struct AstFile *thread_safe_get_ast_file_from_id(i32 index);
+static String   get_file_path_string(i32 index);
+static struct AstFile *thread_safe_get_ast_file_from_id(i32 index);
 
 struct TokenPos {
 	i32 file_id;
@@ -206,7 +206,7 @@ struct TokenPos {
 	i32 column; // starting at 1
 };
 
-gb_internal i32 token_pos_cmp(TokenPos const &a, TokenPos const &b) {
+static i32 token_pos_cmp(TokenPos const &a, TokenPos const &b) {
 	if (a.offset != b.offset) {
 		return (a.offset < b.offset) ? -1 : +1;
 	}
@@ -219,12 +219,12 @@ gb_internal i32 token_pos_cmp(TokenPos const &a, TokenPos const &b) {
 	return string_compare(get_file_path_string(a.file_id), get_file_path_string(b.file_id));
 }
 
-gb_internal gb_inline bool operator==(TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) == 0; }
-gb_internal gb_inline bool operator!=(TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) != 0; }
-gb_internal gb_inline bool operator< (TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) <  0; }
-gb_internal gb_inline bool operator<=(TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) <= 0; }
-gb_internal gb_inline bool operator> (TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) >  0; }
-gb_internal gb_inline bool operator>=(TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) >= 0; }
+static gb_inline bool operator==(TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) == 0; }
+static gb_inline bool operator!=(TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) != 0; }
+static gb_inline bool operator< (TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) <  0; }
+static gb_inline bool operator<=(TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) <= 0; }
+static gb_inline bool operator> (TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) >  0; }
+static gb_inline bool operator>=(TokenPos const &a, TokenPos const &b) { return token_pos_cmp(a, b) >= 0; }
 
 
 TokenPos token_pos_add_column(TokenPos pos) {
@@ -248,36 +248,36 @@ struct Token {
 Token empty_token = {Token_Invalid};
 Token blank_token = {Token_Ident, 0, {cast(u8 *)"_", 1}};
 
-gb_internal Token make_token_ident(String s) {
+static Token make_token_ident(String s) {
 	Token t = {Token_Ident, 0, s};
 	return t;
 }
-gb_internal Token make_token_ident(char const *s) {
+static Token make_token_ident(char const *s) {
 	Token t = {Token_Ident, 0, make_string_c(s)};
 	return t;
 }
 
-gb_internal bool token_is_newline(Token const &tok) {
+static bool token_is_newline(Token const &tok) {
 	return tok.kind == Token_Semicolon && tok.string == "\n";
 }
 
-gb_internal gb_inline bool token_is_literal(TokenKind t) {
+static gb_inline bool token_is_literal(TokenKind t) {
 	return gb_is_between(t, Token__LiteralBegin+1, Token__LiteralEnd-1);
 }
-gb_internal gb_inline bool token_is_operator(TokenKind t) {
+static gb_inline bool token_is_operator(TokenKind t) {
 	return gb_is_between(t, Token__OperatorBegin+1, Token__OperatorEnd-1);
 }
-gb_internal gb_inline bool token_is_keyword(TokenKind t) {
+static gb_inline bool token_is_keyword(TokenKind t) {
 	return gb_is_between(t, Token__KeywordBegin+1, Token__KeywordEnd-1);
 }
-gb_internal gb_inline bool token_is_comparison(TokenKind t) {
+static gb_inline bool token_is_comparison(TokenKind t) {
 	return gb_is_between(t, Token__ComparisonBegin+1, Token__ComparisonEnd-1);
 }
-gb_internal gb_inline bool token_is_shift(TokenKind t) {
+static gb_inline bool token_is_shift(TokenKind t) {
 	return t == Token_Shl || t == Token_Shr;
 }
 
-gb_internal gb_inline void print_token(Token t) { gb_printf("%.*s\n", LIT(t.string)); }
+static gb_inline void print_token(Token t) { gb_printf("%.*s\n", LIT(t.string)); }
 
 #include "error.cpp"
 
@@ -309,12 +309,12 @@ struct Tokenizer {
 	i32 error_count;
 
 	bool insert_semicolon;
-	
+
 	LoadedFile loaded_file;
 };
 
 
-gb_internal void tokenizer_err(Tokenizer *t, char const *msg, ...) {
+static void tokenizer_err(Tokenizer *t, char const *msg, ...) {
 	va_list va;
 	i32 column = t->column_minus_one+1;
 	if (column < 1) {
@@ -333,7 +333,7 @@ gb_internal void tokenizer_err(Tokenizer *t, char const *msg, ...) {
 	t->error_count++;
 }
 
-gb_internal void tokenizer_err(Tokenizer *t, TokenPos const &pos, char const *msg, ...) {
+static void tokenizer_err(Tokenizer *t, TokenPos const &pos, char const *msg, ...) {
 	va_list va;
 	i32 column = t->column_minus_one+1;
 	if (column < 1) {
@@ -347,7 +347,7 @@ gb_internal void tokenizer_err(Tokenizer *t, TokenPos const &pos, char const *ms
 	t->error_count++;
 }
 
-gb_internal void advance_to_next_rune(Tokenizer *t) {
+static void advance_to_next_rune(Tokenizer *t) {
 	if (t->curr_rune == '\n') {
 		t->column_minus_one = -1;
 		t->line_count++;
@@ -377,7 +377,7 @@ gb_internal void advance_to_next_rune(Tokenizer *t) {
 	}
 }
 
-gb_internal void init_tokenizer_with_data(Tokenizer *t, String const &fullpath, void const *data, isize size) {
+static void init_tokenizer_with_data(Tokenizer *t, String const &fullpath, void const *data, isize size) {
 	t->fullpath = fullpath;
 	t->line_count = 1;
 
@@ -391,7 +391,7 @@ gb_internal void init_tokenizer_with_data(Tokenizer *t, String const &fullpath, 
 	}
 }
 
-gb_global TokenizerInitError loaded_file_error_map_to_tokenizer[LoadedFile_COUNT] = {
+static TokenizerInitError loaded_file_error_map_to_tokenizer[LoadedFile_COUNT] = {
 	TokenizerInit_None,         /*LoadedFile_None*/
 	TokenizerInit_Empty,        /*LoadedFile_Empty*/
 	TokenizerInit_FileTooLarge, /*LoadedFile_FileTooLarge*/
@@ -400,13 +400,13 @@ gb_global TokenizerInitError loaded_file_error_map_to_tokenizer[LoadedFile_COUNT
 	TokenizerInit_Permission,   /*LoadedFile_Permission*/
 };
 
-gb_internal TokenizerInitError init_tokenizer_from_fullpath(Tokenizer *t, String const &fullpath, bool copy_file_contents) {
+static TokenizerInitError init_tokenizer_from_fullpath(Tokenizer *t, String const &fullpath, bool copy_file_contents) {
 	LoadedFileError file_err = load_file_32(
-		alloc_cstring(temporary_allocator(), fullpath), 
+		alloc_cstring(temporary_allocator(), fullpath),
 		&t->loaded_file,
 		copy_file_contents
 	);
-	
+
 	TokenizerInitError err = loaded_file_error_map_to_tokenizer[file_err];
 	switch (file_err) {
 	case LoadedFile_None:
@@ -417,11 +417,11 @@ gb_internal TokenizerInitError init_tokenizer_from_fullpath(Tokenizer *t, String
 		t->fullpath = fullpath;
 		t->line_count = 1;
 		break;
-	}	
+	}
 	return err;
 }
 
-gb_internal gb_inline i32 digit_value(Rune r) {
+static gb_inline i32 digit_value(Rune r) {
 	switch (r) {
 	case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
 		return r - '0';
@@ -433,7 +433,7 @@ gb_internal gb_inline i32 digit_value(Rune r) {
 	return 16; // NOTE(bill): Larger than highest possible
 }
 
-gb_internal gb_inline void scan_mantissa(Tokenizer *t, i32 base, bool force_base) {
+static gb_inline void scan_mantissa(Tokenizer *t, i32 base, bool force_base) {
 	if (!force_base) {
 		base = 16; // always check for any possible letter
 	}
@@ -442,14 +442,14 @@ gb_internal gb_inline void scan_mantissa(Tokenizer *t, i32 base, bool force_base
 	}
 }
 
-gb_internal u8 peek_byte(Tokenizer *t, isize offset=0) {
+static u8 peek_byte(Tokenizer *t, isize offset=0) {
 	if (t->read_curr+offset < t->end) {
 		return t->read_curr[offset];
 	}
 	return 0;
 }
 
-gb_internal void scan_number_to_token(Tokenizer *t, Token *token, bool seen_decimal_point) {
+static void scan_number_to_token(Tokenizer *t, Token *token, bool seen_decimal_point) {
 	token->kind = Token_Integer;
 	token->string = {t->curr, 1};
 	token->pos.file_id = t->curr_file_id;
@@ -580,7 +580,7 @@ end:
 }
 
 
-gb_internal bool scan_escape(Tokenizer *t) {
+static bool scan_escape(Tokenizer *t) {
 	isize len = 0;
 	u32 base = 0, max = 0, x = 0;
 
@@ -647,13 +647,13 @@ gb_internal bool scan_escape(Tokenizer *t) {
 }
 
 
-gb_internal gb_inline void tokenizer_skip_line(Tokenizer *t) {
+static gb_inline void tokenizer_skip_line(Tokenizer *t) {
 	while (t->curr_rune != '\n' && t->curr_rune != GB_RUNE_EOF) {
 		advance_to_next_rune(t);
 	}
 }
 
-gb_internal gb_inline void tokenizer_skip_whitespace(Tokenizer *t, bool on_newline) {
+static gb_inline void tokenizer_skip_whitespace(Tokenizer *t, bool on_newline) {
 	if (on_newline) {
 		for (;;) {
 			switch (t->curr_rune) {
@@ -680,7 +680,7 @@ gb_internal gb_inline void tokenizer_skip_whitespace(Tokenizer *t, bool on_newli
 	}
 }
 
-gb_internal void tokenizer_get_token(Tokenizer *t, Token *token, int repeat=0) {
+static void tokenizer_get_token(Tokenizer *t, Token *token, int repeat=0) {
 	tokenizer_skip_whitespace(t, t->insert_semicolon);
 
 	token->kind = Token_Invalid;
@@ -942,7 +942,7 @@ gb_internal void tokenizer_get_token(Tokenizer *t, Token *token, int repeat=0) {
 				tokenizer_skip_line(t);
 			} else if (t->curr_rune == '+') {
 				token->kind = Token_FileTag;
-				
+
 				// Skip until end of line or until we hit what is probably a comment.
 				// The parsing of tags happens in `parse_file`.
 				while (t->curr_rune != GB_RUNE_EOF) {
@@ -951,7 +951,7 @@ gb_internal void tokenizer_get_token(Tokenizer *t, Token *token, int repeat=0) {
 					}
 					if (t->curr_rune == '/') {
 						break;
-					} 
+					}
 					advance_to_next_rune(t);
 				}
 			}

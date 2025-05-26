@@ -3,15 +3,15 @@
 struct WorkerTask;
 struct ThreadPool;
 
-gb_global gb_thread_local Thread *current_thread;
-gb_internal Thread *get_current_thread(void) {
+static gb_thread_local Thread *current_thread;
+static Thread *get_current_thread(void) {
 	return current_thread;
 }
 
-gb_internal void thread_pool_init(ThreadPool *pool, isize worker_count, char const *worker_name);
-gb_internal void thread_pool_destroy(ThreadPool *pool);
-gb_internal bool thread_pool_add_task(ThreadPool *pool, WorkerTaskProc *proc, void *data);
-gb_internal void thread_pool_wait(ThreadPool *pool);
+static void thread_pool_init(ThreadPool *pool, isize worker_count, char const *worker_name);
+static void thread_pool_destroy(ThreadPool *pool);
+static bool thread_pool_add_task(ThreadPool *pool, WorkerTaskProc *proc, void *data);
+static void thread_pool_wait(ThreadPool *pool);
 
 enum GrabState {
 	Grab_Success = 0,
@@ -28,11 +28,11 @@ struct ThreadPool {
 	Futex tasks_left;
 };
 
-gb_internal isize current_thread_index(void) {
+static isize current_thread_index(void) {
 	return current_thread ? current_thread->idx : 0;
 }
 
-gb_internal void thread_pool_init(ThreadPool *pool, isize worker_count, char const *worker_name) {
+static void thread_pool_init(ThreadPool *pool, isize worker_count, char const *worker_name) {
 	pool->threads_allocator = permanent_allocator();
 	slice_init(&pool->threads, pool->threads_allocator, worker_count + 1);
 
@@ -49,7 +49,7 @@ gb_internal void thread_pool_init(ThreadPool *pool, isize worker_count, char con
 	}
 }
 
-gb_internal void thread_pool_destroy(ThreadPool *pool) {
+static void thread_pool_destroy(ThreadPool *pool) {
 	pool->running.store(false, std::memory_order_seq_cst);
 
 	for_array_off(i, 1, pool->threads) {
@@ -144,16 +144,16 @@ GrabState thread_pool_queue_steal(Thread *thread, WorkerTask *task) {
 	return ret;
 }
 
-gb_internal bool thread_pool_add_task(ThreadPool *pool, WorkerTaskProc *proc, void *data) {
+static bool thread_pool_add_task(ThreadPool *pool, WorkerTaskProc *proc, void *data) {
 	WorkerTask task = {};
 	task.do_work = proc;
 	task.data = data;
-		
+
 	thread_pool_queue_push(current_thread, task);
 	return true;
-}	
+}
 
-gb_internal void thread_pool_wait(ThreadPool *pool) {
+static void thread_pool_wait(ThreadPool *pool) {
 	WorkerTask task;
 
 	while (pool->tasks_left.load(std::memory_order_acquire)) {
@@ -176,7 +176,7 @@ gb_internal void thread_pool_wait(ThreadPool *pool) {
 	}
 }
 
-gb_internal THREAD_PROC(thread_pool_thread_proc) {
+static THREAD_PROC(thread_pool_thread_proc) {
 	WorkerTask task;
 	current_thread = thread;
 	ThreadPool *pool = current_thread->pool;

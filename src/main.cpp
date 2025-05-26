@@ -12,21 +12,21 @@
 #endif
 #include "exact_value.cpp"
 #include "build_settings.cpp"
-gb_global ThreadPool global_thread_pool;
-gb_internal void init_global_thread_pool(void) {
+static ThreadPool global_thread_pool;
+static void init_global_thread_pool(void) {
 	isize thread_count = gb_max(build_context.thread_count, 1);
 	isize worker_count = thread_count; // +1
 	thread_pool_init(&global_thread_pool, worker_count, "ThreadPoolWorker");
 }
-gb_internal bool thread_pool_add_task(WorkerTaskProc *proc, void *data) {
+static bool thread_pool_add_task(WorkerTaskProc *proc, void *data) {
 	return thread_pool_add_task(&global_thread_pool, proc, data);
 }
-gb_internal void thread_pool_wait(void) {
+static void thread_pool_wait(void) {
 	thread_pool_wait(&global_thread_pool);
 }
 
 
-gb_internal i64 PRINT_PEAK_USAGE(void) {
+static i64 PRINT_PEAK_USAGE(void) {
 	if (build_context.show_more_timings) {
 	#if defined(GB_SYSTEM_WINDOWS)
 		PROCESS_MEMORY_COUNTERS p = {sizeof(p)};
@@ -41,9 +41,9 @@ gb_internal i64 PRINT_PEAK_USAGE(void) {
 }
 
 
-gb_global BlockingMutex debugf_mutex;
+static BlockingMutex debugf_mutex;
 
-gb_internal void debugf(char const *fmt, ...) {
+static void debugf(char const *fmt, ...) {
 	if (build_context.show_debug_messages) {
 		mutex_lock(&debugf_mutex);
 		gb_printf_err("[DEBUG] ");
@@ -55,7 +55,7 @@ gb_internal void debugf(char const *fmt, ...) {
 	}
 }
 
-gb_global Timings global_timings = {0};
+static Timings global_timings = {0};
 
 #if defined(GB_SYSTEM_WINDOWS)
 #include "llvm-c/Types.h"
@@ -81,7 +81,7 @@ gb_global Timings global_timings = {0};
 #include "bug_report.cpp"
 
 // NOTE(bill): 'name' is used in debugging and profiling modes
-gb_internal i32 system_exec_command_line_app_internal(bool exit_on_err, char const *name, char const *fmt, va_list va) {
+static i32 system_exec_command_line_app_internal(bool exit_on_err, char const *name, char const *fmt, va_list va) {
 	isize const cmd_cap = 64<<20; // 64 MiB should be more than enough
 	char *cmd_line = gb_alloc_array(gb_heap_allocator(), char, cmd_cap);
 	isize cmd_len = 0;
@@ -167,7 +167,7 @@ gb_internal i32 system_exec_command_line_app_internal(bool exit_on_err, char con
 	return exit_code;
 }
 
-gb_internal i32 system_exec_command_line_app(char const *name, char const *fmt, ...) {
+static i32 system_exec_command_line_app(char const *name, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	i32 exit_code = system_exec_command_line_app_internal(/* exit_on_err= */ false, name, fmt, va);
@@ -175,7 +175,7 @@ gb_internal i32 system_exec_command_line_app(char const *name, char const *fmt, 
 	return exit_code;
 }
 
-gb_internal void system_must_exec_command_line_app(char const *name, char const *fmt, ...) {
+static void system_must_exec_command_line_app(char const *name, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	system_exec_command_line_app_internal(/* exit_on_err= */ true, name, fmt, va);
@@ -187,7 +187,7 @@ gb_internal void system_must_exec_command_line_app(char const *name, char const 
 #define pclose _pclose
 #endif
 
-gb_internal bool system_exec_command_line_app_output(char const *command, gbString *output) {
+static bool system_exec_command_line_app_output(char const *command, gbString *output) {
 	GB_ASSERT(output);
 
 	u8 buffer[256];
@@ -214,7 +214,7 @@ gb_internal bool system_exec_command_line_app_output(char const *command, gbStri
 	return true;
 }
 
-gb_internal Array<String> setup_args(int argc, char const **argv) {
+static Array<String> setup_args(int argc, char const **argv) {
 	gbAllocator a = heap_allocator();
 
 #if defined(GB_SYSTEM_WINDOWS)
@@ -243,7 +243,7 @@ gb_internal Array<String> setup_args(int argc, char const **argv) {
 #endif
 }
 
-gb_internal void print_usage_line(i32 indent, char const *fmt, ...) {
+static void print_usage_line(i32 indent, char const *fmt, ...) {
 	while (indent --> 0) {
 		gb_printf("\t");
 	}
@@ -254,7 +254,7 @@ gb_internal void print_usage_line(i32 indent, char const *fmt, ...) {
 	gb_printf("\n");
 }
 
-gb_internal void usage(String argv0, String argv1 = {}) {
+static void usage(String argv0, String argv1 = {}) {
 	if (argv1 == "run.") {
 		print_usage_line(0, "Did you mean 'odin run .'?");
 	} else if (argv1 == "build.") {
@@ -427,12 +427,12 @@ struct BuildFlag {
 };
 
 
-gb_internal void add_flag(Array<BuildFlag> *build_flags, BuildFlagKind kind, String name, BuildFlagParamKind param_kind, u64 command_support, bool allow_multiple=false) {
+static void add_flag(Array<BuildFlag> *build_flags, BuildFlagKind kind, String name, BuildFlagParamKind param_kind, u64 command_support, bool allow_multiple=false) {
 	BuildFlag flag = {kind, name, param_kind, command_support, allow_multiple};
 	array_add(build_flags, flag);
 }
 
-gb_internal ExactValue build_param_to_exact_value(String name, String param) {
+static ExactValue build_param_to_exact_value(String name, String param) {
 	ExactValue value = {};
 
 	/*
@@ -487,7 +487,7 @@ gb_internal ExactValue build_param_to_exact_value(String name, String param) {
 }
 
 // Writes a did-you-mean message for formerly deprecated flags.
-gb_internal void did_you_mean_flag(String flag) {
+static void did_you_mean_flag(String flag) {
 	gbAllocator a = heap_allocator();
 	String name = copy_string(a, flag);
 	defer (gb_free(a, name.text));
@@ -500,7 +500,7 @@ gb_internal void did_you_mean_flag(String flag) {
 	gb_printf_err("Unknown flag: '%.*s'\n", LIT(flag));
 }
 
-gb_internal bool parse_build_flags(Array<String> args) {
+static bool parse_build_flags(Array<String> args) {
 	auto build_flags = array_make<BuildFlag>(heap_allocator(), 0, BuildFlag_COUNT);
 	add_flag(&build_flags, BuildFlag_Help,                    str_lit("help"),                      BuildFlagParam_None,    Command_all);
 	add_flag(&build_flags, BuildFlag_SingleFile,              str_lit("file"),                      BuildFlagParam_None,    Command__does_build | Command__does_check);
@@ -1716,7 +1716,7 @@ gb_internal bool parse_build_flags(Array<String> args) {
 	return !bad_flags;
 }
 
-gb_internal void timings_export_all(Timings *t, Checker *c, bool timings_are_finalized = false) {
+static void timings_export_all(Timings *t, Checker *c, bool timings_are_finalized = false) {
 	GB_ASSERT((!(build_context.export_timings_format == TimingsExportUnspecified) && build_context.export_timings_file.len > 0));
 
 	/*
@@ -1811,7 +1811,7 @@ gb_internal void timings_export_all(Timings *t, Checker *c, bool timings_are_fin
 	gb_printf("Done.\n");
 }
 
-gb_internal void check_defines(BuildContext *bc, Checker *c) {
+static void check_defines(BuildContext *bc, Checker *c) {
 	for (auto const &entry : bc->defined_values) {
 		String name = make_string_c(entry.key);
 		ExactValue value = entry.value;
@@ -1837,7 +1837,7 @@ gb_internal void check_defines(BuildContext *bc, Checker *c) {
 	}
 }
 
-gb_internal void temp_alloc_defineable_strings(Checker *c) {
+static void temp_alloc_defineable_strings(Checker *c) {
 	for_array(i, c->info.defineables) {
 		Defineable *def = &c->info.defineables[i];
 		def->default_value_str = make_string_c(write_exact_value_to_string(gb_string_make(temporary_allocator(), ""), def->default_value));
@@ -1845,7 +1845,7 @@ gb_internal void temp_alloc_defineable_strings(Checker *c) {
 	}
 }
 
-gb_internal GB_COMPARE_PROC(defineables_cmp) {
+static GB_COMPARE_PROC(defineables_cmp) {
 	Defineable *x = (Defineable *)a;
 	Defineable *y = (Defineable *)b;
 
@@ -1861,7 +1861,7 @@ gb_internal GB_COMPARE_PROC(defineables_cmp) {
 	return i32_cmp(x->pos.offset, y->pos.offset);
 }
 
-gb_internal void sort_defineables_and_remove_duplicates(Checker *c) {
+static void sort_defineables_and_remove_duplicates(Checker *c) {
 	if (c->info.defineables.count == 0) {
 		return;
 	}
@@ -1879,7 +1879,7 @@ gb_internal void sort_defineables_and_remove_duplicates(Checker *c) {
 	}
 }
 
-gb_internal void export_defineables(Checker *c, String path) {
+static void export_defineables(Checker *c, String path) {
 	gbFile f = {};
 	gbFileError err = gb_file_open_mode(&f, gbFileMode_Write, (char *)path.text);
 	if (err != gbFileError_None) {
@@ -1918,7 +1918,7 @@ gb_internal void export_defineables(Checker *c, String path) {
 	}
 }
 
-gb_internal void show_defineables(Checker *c) {
+static void show_defineables(Checker *c) {
 	for_array(i, c->info.defineables) {
 		Defineable *def = &c->info.defineables[i];
 		if (has_ansi_terminal_colours()) {
@@ -1937,7 +1937,7 @@ gb_internal void show_defineables(Checker *c) {
 	}
 }
 
-gb_internal void show_timings(Checker *c, Timings *t) {
+static void show_timings(Checker *c, Timings *t) {
 	Parser *p      = c->parser;
 	isize lines    = p->total_line_count;
 	isize tokens   = p->total_token_count;
@@ -2065,13 +2065,13 @@ gb_internal void show_timings(Checker *c, Timings *t) {
 	}
 }
 
-gb_internal GB_COMPARE_PROC(file_path_cmp) {
+static GB_COMPARE_PROC(file_path_cmp) {
 	AstFile *x = *(AstFile **)a;
 	AstFile *y = *(AstFile **)b;
 	return string_compare(x->fullpath, y->fullpath);
 }
 
-gb_internal void export_dependencies(Checker *c) {
+static void export_dependencies(Checker *c) {
 	GB_ASSERT(build_context.export_dependencies_format != DependenciesExportUnspecified);
 
 	if (build_context.export_dependencies_file.len <= 0) {
@@ -2176,7 +2176,7 @@ gb_internal void export_dependencies(Checker *c) {
 	}
 }
 
-gb_internal void remove_temp_files(lbGenerator *gen) {
+static void remove_temp_files(lbGenerator *gen) {
 	if (build_context.keep_temp_files) return;
 
 	switch (build_context.build_mode) {
@@ -2211,7 +2211,7 @@ gb_internal void remove_temp_files(lbGenerator *gen) {
 }
 
 
-gb_internal int print_show_help(String const arg0, String command, String optional_flag = {}) {
+static int print_show_help(String const arg0, String command, String optional_flag = {}) {
 	bool help_resolved = false;
 	bool printed_usage_header = false;
 	bool printed_flags_header = false;
@@ -2931,7 +2931,7 @@ gb_internal int print_show_help(String const arg0, String command, String option
 	return 0;
 }
 
-gb_internal void print_show_unused(Checker *c) {
+static void print_show_unused(Checker *c) {
 	CheckerInfo *info = &c->info;
 
 	auto unused = array_make<Entity *>(permanent_allocator(), 0, info->entities.count);
@@ -3003,7 +3003,7 @@ gb_internal void print_show_unused(Checker *c) {
 	print_usage_line(0, "");
 }
 
-gb_internal bool check_env(void) {
+static bool check_env(void) {
 	TIME_SECTION("init check env");
 
 	gbAllocator a = heap_allocator();
@@ -3031,7 +3031,7 @@ struct StripSemicolonFile {
 	i64 written;
 };
 
-gb_internal gbFileError write_file_with_stripped_tokens(gbFile *f, AstFile *file, i64 *written_) {
+static gbFileError write_file_with_stripped_tokens(gbFile *f, AstFile *file, i64 *written_) {
 	i64 written = 0;
 	gbFileError err = gbFileError_None;
 	u8 const *file_data = file->tokenizer.start;
@@ -3070,7 +3070,7 @@ gb_internal gbFileError write_file_with_stripped_tokens(gbFile *f, AstFile *file
 	return err;
 }
 
-gb_internal int strip_semicolons(Parser *parser) {
+static int strip_semicolons(Parser *parser) {
 	isize file_count = 0;
 	for (AstPackage *pkg : parser->packages) {
 		file_count += pkg->files.count;
@@ -3206,7 +3206,7 @@ gb_internal int strip_semicolons(Parser *parser) {
 	return cast(int)failed;
 }
 
-gb_internal void init_terminal(void) {
+static void init_terminal(void) {
 	TIME_SECTION("init terminal");
 	build_context.has_ansi_terminal_colours = false;
 

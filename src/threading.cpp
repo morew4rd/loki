@@ -36,7 +36,7 @@ struct ThreadPool;
 struct Parker;
 
 #define THREAD_PROC(name) isize name(struct Thread *thread)
-gb_internal THREAD_PROC(thread_pool_thread_proc);
+static THREAD_PROC(thread_pool_thread_proc);
 
 #define WORKER_TASK_PROC(name) isize name(void *data)
 typedef WORKER_TASK_PROC(WorkerTaskProc);
@@ -78,58 +78,58 @@ struct Thread {
 typedef std::atomic<i32> Futex;
 typedef volatile i32     Footex;
 
-gb_internal void futex_wait(Futex *addr, Footex val);
-gb_internal void futex_signal(Futex *addr);
-gb_internal void futex_broadcast(Futex *addr);
+static void futex_wait(Futex *addr, Footex val);
+static void futex_signal(Futex *addr);
+static void futex_broadcast(Futex *addr);
 
-gb_internal void mutex_lock    (BlockingMutex *m);
-gb_internal bool mutex_try_lock(BlockingMutex *m);
-gb_internal void mutex_unlock  (BlockingMutex *m);
+static void mutex_lock    (BlockingMutex *m);
+static bool mutex_try_lock(BlockingMutex *m);
+static void mutex_unlock  (BlockingMutex *m);
 
-gb_internal void mutex_lock    (RecursiveMutex *m);
-gb_internal bool mutex_try_lock(RecursiveMutex *m);
-gb_internal void mutex_unlock  (RecursiveMutex *m);
+static void mutex_lock    (RecursiveMutex *m);
+static bool mutex_try_lock(RecursiveMutex *m);
+static void mutex_unlock  (RecursiveMutex *m);
 
-gb_internal void rw_mutex_lock           (RwMutex *m);
-gb_internal bool rw_mutex_try_lock       (RwMutex *m);
-gb_internal void rw_mutex_unlock         (RwMutex *m);
-gb_internal void rw_mutex_shared_lock    (RwMutex *m);
-gb_internal bool rw_mutex_try_shared_lock(RwMutex *m);
-gb_internal void rw_mutex_shared_unlock  (RwMutex *m);
+static void rw_mutex_lock           (RwMutex *m);
+static bool rw_mutex_try_lock       (RwMutex *m);
+static void rw_mutex_unlock         (RwMutex *m);
+static void rw_mutex_shared_lock    (RwMutex *m);
+static bool rw_mutex_try_shared_lock(RwMutex *m);
+static void rw_mutex_shared_unlock  (RwMutex *m);
 
-gb_internal void semaphore_post(Semaphore *s, i32 count);
-gb_internal void semaphore_wait(Semaphore *s);
+static void semaphore_post(Semaphore *s, i32 count);
+static void semaphore_wait(Semaphore *s);
 
 
-gb_internal void condition_broadcast(Condition *c);
-gb_internal void condition_signal(Condition *c);
-gb_internal void condition_wait(Condition *c, BlockingMutex *m);
+static void condition_broadcast(Condition *c);
+static void condition_signal(Condition *c);
+static void condition_wait(Condition *c, BlockingMutex *m);
 
-gb_internal void park(Parker *p);
-gb_internal void unpark_one(Parker *p);
-gb_internal void unpark_all(Parker *p);
+static void park(Parker *p);
+static void unpark_one(Parker *p);
+static void unpark_all(Parker *p);
 
-gb_internal u32  thread_current_id(void);
+static u32  thread_current_id(void);
 
-gb_internal void thread_init                     (ThreadPool *pool, Thread *t, isize idx);
-gb_internal void thread_init_and_start           (ThreadPool *pool, Thread *t, isize idx);
-gb_internal void thread_join_and_destroy(Thread *t);
-gb_internal void thread_set_name        (Thread *t, char const *name);
+static void thread_init                     (ThreadPool *pool, Thread *t, isize idx);
+static void thread_init_and_start           (ThreadPool *pool, Thread *t, isize idx);
+static void thread_join_and_destroy(Thread *t);
+static void thread_set_name        (Thread *t, char const *name);
 
-gb_internal void yield_thread(void);
-gb_internal void yield_process(void);
+static void yield_thread(void);
+static void yield_process(void);
 
 struct Wait_Signal {
 	Futex futex;
 };
 
-gb_internal void wait_signal_until_available(Wait_Signal *ws) {
+static void wait_signal_until_available(Wait_Signal *ws) {
 	if (ws->futex.load() == 0) {
 		futex_wait(&ws->futex, 0);
 	}
 }
 
-gb_internal void wait_signal_set(Wait_Signal *ws) {
+static void wait_signal_set(Wait_Signal *ws) {
 	ws->futex.store(1);
 	futex_broadcast(&ws->futex);
 }
@@ -184,7 +184,7 @@ struct RecursiveMutex {
 	i32   recursion;
 };
 
-gb_internal void mutex_lock(RecursiveMutex *m) {
+static void mutex_lock(RecursiveMutex *m) {
 	Futex tid;
 	tid.store(cast(i32)thread_current_id());
 	for (;;) {
@@ -198,7 +198,7 @@ gb_internal void mutex_lock(RecursiveMutex *m) {
 		futex_wait(&m->owner, prev_owner);
 	}
 }
-gb_internal bool mutex_try_lock(RecursiveMutex *m) {
+static bool mutex_try_lock(RecursiveMutex *m) {
 	Futex tid;
 	tid.store(cast(i32)thread_current_id());
 	i32 prev_owner = 0;
@@ -210,7 +210,7 @@ gb_internal bool mutex_try_lock(RecursiveMutex *m) {
 	}
 	return false;
 }
-gb_internal void mutex_unlock(RecursiveMutex *m) {
+static void mutex_unlock(RecursiveMutex *m) {
 	m->recursion--;
 	if (m->recursion != 0) {
 		return;
@@ -230,7 +230,7 @@ struct Semaphore {
 	}
 };
 
-gb_internal void semaphore_post(Semaphore *s, i32 count) {
+static void semaphore_post(Semaphore *s, i32 count) {
 	s->count().fetch_add(count, std::memory_order_release);
 	if (s->count().load() == 1) {
 		futex_signal(&s->count());
@@ -238,7 +238,7 @@ gb_internal void semaphore_post(Semaphore *s, i32 count) {
 		futex_broadcast(&s->count());
 	}
 }
-gb_internal void semaphore_wait(Semaphore *s) {
+static void semaphore_wait(Semaphore *s) {
 	for (;;) {
 		i32 original_count = s->count().load(std::memory_order_relaxed);
 		while (original_count == 0) {
@@ -256,13 +256,13 @@ gb_internal void semaphore_wait(Semaphore *s) {
 	struct BlockingMutex {
 		SRWLOCK srwlock;
 	};
-	gb_internal void mutex_lock(BlockingMutex *m) {
+	static void mutex_lock(BlockingMutex *m) {
 		AcquireSRWLockExclusive(&m->srwlock);
 	}
-	gb_internal bool mutex_try_lock(BlockingMutex *m) {
+	static bool mutex_try_lock(BlockingMutex *m) {
 		return !!TryAcquireSRWLockExclusive(&m->srwlock);
 	}
-	gb_internal void mutex_unlock(BlockingMutex *m) {
+	static void mutex_unlock(BlockingMutex *m) {
 		ReleaseSRWLockExclusive(&m->srwlock);
 	}
 
@@ -270,13 +270,13 @@ gb_internal void semaphore_wait(Semaphore *s) {
 		CONDITION_VARIABLE cond;
 	};
 
-	gb_internal void condition_broadcast(Condition *c) {
+	static void condition_broadcast(Condition *c) {
 		WakeAllConditionVariable(&c->cond);
 	}
-	gb_internal void condition_signal(Condition *c) {
+	static void condition_signal(Condition *c) {
 		WakeConditionVariable(&c->cond);
 	}
-	gb_internal void condition_wait(Condition *c, BlockingMutex *m) {
+	static void condition_wait(Condition *c, BlockingMutex *m) {
 		SleepConditionVariableSRW(&c->cond, &m->srwlock, INFINITE, 0);
 	}
 
@@ -284,23 +284,23 @@ gb_internal void semaphore_wait(Semaphore *s) {
 		SRWLOCK srwlock;
 	};
 
-	gb_internal void rw_mutex_lock(RwMutex *m) {
+	static void rw_mutex_lock(RwMutex *m) {
 		AcquireSRWLockExclusive(&m->srwlock);
 	}
-	gb_internal bool rw_mutex_try_lock(RwMutex *m) {
+	static bool rw_mutex_try_lock(RwMutex *m) {
 		return !!TryAcquireSRWLockExclusive(&m->srwlock);
 	}
-	gb_internal void rw_mutex_unlock(RwMutex *m) {
+	static void rw_mutex_unlock(RwMutex *m) {
 		ReleaseSRWLockExclusive(&m->srwlock);
 	}
 
-	gb_internal void rw_mutex_shared_lock(RwMutex *m) {
+	static void rw_mutex_shared_lock(RwMutex *m) {
 		AcquireSRWLockShared(&m->srwlock);
 	}
-	gb_internal bool rw_mutex_try_shared_lock(RwMutex *m) {
+	static bool rw_mutex_try_shared_lock(RwMutex *m) {
 		return !!TryAcquireSRWLockShared(&m->srwlock);
 	}
-	gb_internal void rw_mutex_shared_unlock(RwMutex *m) {
+	static void rw_mutex_shared_unlock(RwMutex *m) {
 		ReleaseSRWLockShared(&m->srwlock);
 	}
 #else
@@ -329,7 +329,7 @@ gb_internal void semaphore_wait(Semaphore *s) {
 		}
 	};
 
-	gb_no_inline gb_internal void mutex_lock_slow(BlockingMutex *m, i32 curr_state) {
+	gb_no_inline static void mutex_lock_slow(BlockingMutex *m, i32 curr_state) {
 		i32 new_state = curr_state;
 		for (i32 spin = 0; spin < 100; spin++) {
 			i32 state = Internal_Mutex_State_Unlocked;
@@ -357,7 +357,7 @@ gb_internal void semaphore_wait(Semaphore *s) {
 		}
 	}
 
-	gb_internal void mutex_lock(BlockingMutex *m) {
+	static void mutex_lock(BlockingMutex *m) {
 		ANNOTATE_LOCK_PRE(m, 0);
 		i32 v = m->state().exchange(Internal_Mutex_State_Locked, std::memory_order_acquire);
 		if (v != Internal_Mutex_State_Unlocked) {
@@ -365,7 +365,7 @@ gb_internal void semaphore_wait(Semaphore *s) {
 		}
 		ANNOTATE_LOCK_POST(m);
 	}
-	gb_internal bool mutex_try_lock(BlockingMutex *m) {
+	static bool mutex_try_lock(BlockingMutex *m) {
 		ANNOTATE_LOCK_PRE(m, 1);
 		i32 v = m->state().exchange(Internal_Mutex_State_Locked, std::memory_order_acquire);
 		if (v == Internal_Mutex_State_Unlocked) {
@@ -375,11 +375,11 @@ gb_internal void semaphore_wait(Semaphore *s) {
 		return false;
 	}
 
-	gb_no_inline gb_internal void mutex_unlock_slow(BlockingMutex *m) {
+	gb_no_inline static void mutex_unlock_slow(BlockingMutex *m) {
 		futex_signal(&m->state());
 	}
 
-	gb_internal void mutex_unlock(BlockingMutex *m) {
+	static void mutex_unlock(BlockingMutex *m) {
 		ANNOTATE_UNLOCK_PRE(m);
 		i32 v = m->state().exchange(Internal_Mutex_State_Unlocked, std::memory_order_release);
 		switch (v) {
@@ -407,15 +407,15 @@ gb_internal void semaphore_wait(Semaphore *s) {
 		}
 	};
 
-	gb_internal void condition_broadcast(Condition *c) {
+	static void condition_broadcast(Condition *c) {
 		c->state().fetch_add(1, std::memory_order_release);
 		futex_broadcast(&c->state());
 	}
-	gb_internal void condition_signal(Condition *c) {
+	static void condition_signal(Condition *c) {
 		c->state().fetch_add(1, std::memory_order_release);
 		futex_signal(&c->state());
 	}
-	gb_internal void condition_wait(Condition *c, BlockingMutex *m) {
+	static void condition_wait(Condition *c, BlockingMutex *m) {
 		i32 state = c->state().load(std::memory_order_relaxed);
 		mutex_unlock(m);
 		futex_wait(&c->state(), state);
@@ -427,23 +427,23 @@ gb_internal void semaphore_wait(Semaphore *s) {
 		BlockingMutex mutex;
 	};
 
-	gb_internal void rw_mutex_lock(RwMutex *m) {
+	static void rw_mutex_lock(RwMutex *m) {
 		mutex_lock(&m->mutex);
 	}
-	gb_internal bool rw_mutex_try_lock(RwMutex *m) {
+	static bool rw_mutex_try_lock(RwMutex *m) {
 		return mutex_try_lock(&m->mutex);
 	}
-	gb_internal void rw_mutex_unlock(RwMutex *m) {
+	static void rw_mutex_unlock(RwMutex *m) {
 		mutex_unlock(&m->mutex);
 	}
 
-	gb_internal void rw_mutex_shared_lock(RwMutex *m) {
+	static void rw_mutex_shared_lock(RwMutex *m) {
 		mutex_lock(&m->mutex);
 	}
-	gb_internal bool rw_mutex_try_shared_lock(RwMutex *m) {
+	static bool rw_mutex_try_shared_lock(RwMutex *m) {
 		return mutex_try_lock(&m->mutex);
 	}
-	gb_internal void rw_mutex_shared_unlock(RwMutex *m) {
+	static void rw_mutex_shared_unlock(RwMutex *m) {
 		mutex_unlock(&m->mutex);
 	}
 #endif
@@ -457,7 +457,7 @@ enum ParkerState : u32 {
 	ParkerState_Parked   = UINT32_MAX,
 };
 
-gb_internal void park(Parker *p) {
+static void park(Parker *p) {
 	if (p->state.fetch_sub(1, std::memory_order_acquire) == ParkerState_Notified) {
 		return;
 	}
@@ -470,20 +470,20 @@ gb_internal void park(Parker *p) {
 	}
 }
 
-gb_internal void unpark_one(Parker *p) {
+static void unpark_one(Parker *p) {
 	if (p->state.exchange(ParkerState_Notified, std::memory_order_release) == ParkerState_Parked) {
 		futex_signal(&p->state);
 	}
 }
 
-gb_internal void unpark_all(Parker *p) {
+static void unpark_all(Parker *p) {
 	if (p->state.exchange(ParkerState_Notified, std::memory_order_release) == ParkerState_Parked) {
 		futex_broadcast(&p->state);
 	}
 }
 
 
-gb_internal u32 thread_current_id(void) {
+static u32 thread_current_id(void) {
 	u32 thread_id;
 #if defined(GB_SYSTEM_WINDOWS)
 	#if defined(GB_ARCH_32_BIT) && defined(GB_CPU_X86)
@@ -516,7 +516,7 @@ gb_internal u32 thread_current_id(void) {
 }
 
 
-gb_internal gb_inline void yield_thread(void) {
+static gb_inline void yield_thread(void) {
 #if defined(GB_SYSTEM_WINDOWS)
 	_mm_pause();
 #elif defined(GB_SYSTEM_OSX)
@@ -537,7 +537,7 @@ gb_internal gb_inline void yield_thread(void) {
 #endif
 }
 
-gb_internal gb_inline void yield(void) {
+static gb_inline void yield(void) {
 #if defined(GB_SYSTEM_WINDOWS)
 	YieldProcessor();
 #else
@@ -546,13 +546,13 @@ gb_internal gb_inline void yield(void) {
 }
 
 #if defined(GB_SYSTEM_WINDOWS)
-gb_internal DWORD __stdcall internal_thread_proc(void *arg) {
+static DWORD __stdcall internal_thread_proc(void *arg) {
 	Thread *t = cast(Thread *)arg;
 	thread_pool_thread_proc(t);
 	return 0;
 }
 #else
-gb_internal void *internal_thread_proc(void *arg) {
+static void *internal_thread_proc(void *arg) {
 #if (GB_SYSTEM_LINUX)
 	// NOTE: Don't permit any signal delivery to threads on Linux.
 	sigset_t mask = {};
@@ -566,21 +566,21 @@ gb_internal void *internal_thread_proc(void *arg) {
 }
 #endif
 
-gb_internal TaskRingBuffer *task_ring_init(isize size) {
+static TaskRingBuffer *task_ring_init(isize size) {
 	TaskRingBuffer *ring = gb_alloc_item(heap_allocator(), TaskRingBuffer);
 	ring->size = size;
 	ring->buffer = gb_alloc_array(heap_allocator(), WorkerTask, ring->size);
 	return ring;
 }
 
-gb_internal void thread_queue_destroy(TaskQueue *q) {
+static void thread_queue_destroy(TaskQueue *q) {
 	gb_free(heap_allocator(), (*q->ring).buffer);
 	gb_free(heap_allocator(), q->ring);
 }
 
-gb_internal void thread_init_arenas(Thread *t);
+static void thread_init_arenas(Thread *t);
 
-gb_internal void thread_init(ThreadPool *pool, Thread *t, isize idx) {
+static void thread_init(ThreadPool *pool, Thread *t, isize idx) {
 	gb_zero_item(t);
 #if defined(GB_SYSTEM_WINDOWS)
 	t->win32_handle = INVALID_HANDLE_VALUE;
@@ -596,7 +596,7 @@ gb_internal void thread_init(ThreadPool *pool, Thread *t, isize idx) {
 	thread_init_arenas(t);
 }
 
-gb_internal void thread_init_and_start(ThreadPool *pool, Thread *t, isize idx) {
+static void thread_init_and_start(ThreadPool *pool, Thread *t, isize idx) {
 	thread_init(pool, t, idx);
 	isize stack_size = 0;
 
@@ -617,7 +617,7 @@ gb_internal void thread_init_and_start(ThreadPool *pool, Thread *t, isize idx) {
 #endif
 }
 
-gb_internal void thread_join_and_destroy(Thread *t) {
+static void thread_join_and_destroy(Thread *t) {
 #if defined(GB_SYSTEM_WINDOWS)
 	WaitForSingleObject(t->win32_handle, INFINITE);
 	CloseHandle(t->win32_handle);
@@ -630,7 +630,7 @@ gb_internal void thread_join_and_destroy(Thread *t) {
 	thread_queue_destroy(&t->queue);
 }
 
-gb_internal void thread_set_name(Thread *t, char const *name) {
+static void thread_set_name(Thread *t, char const *name) {
 #if defined(GB_COMPILER_MSVC)
 	#pragma pack(push, 8)
 		typedef struct {
@@ -677,7 +677,7 @@ gb_internal void thread_set_name(Thread *t, char const *name) {
 	#define SYS_futex SYS___futex
 #endif
 
-gb_internal void futex_signal(Futex *addr) {
+static void futex_signal(Futex *addr) {
 	int ret = syscall(SYS_futex, addr, FUTEX_WAKE | FUTEX_PRIVATE_FLAG, 1, NULL, NULL, 0);
 	if (ret == -1) {
 		perror("Futex wake");
@@ -685,7 +685,7 @@ gb_internal void futex_signal(Futex *addr) {
 	}
 }
 
-gb_internal void futex_broadcast(Futex *addr) {
+static void futex_broadcast(Futex *addr) {
 	int ret = syscall(SYS_futex, addr, FUTEX_WAKE | FUTEX_PRIVATE_FLAG, INT32_MAX, NULL, NULL, 0);
 	if (ret == -1) {
 		perror("Futex wake");
@@ -693,7 +693,7 @@ gb_internal void futex_broadcast(Futex *addr) {
 	}
 }
 
-gb_internal void futex_wait(Futex *addr, Footex val) {
+static void futex_wait(Futex *addr, Footex val) {
 	for (;;) {
 		int ret = syscall(SYS_futex, addr, FUTEX_WAIT | FUTEX_PRIVATE_FLAG, val, NULL, NULL, 0);
 		if (ret == -1) {
@@ -716,15 +716,15 @@ gb_internal void futex_wait(Futex *addr, Footex val) {
 #include <sys/types.h>
 #include <sys/umtx.h>
 
-gb_internal void futex_signal(Futex *addr) {
+static void futex_signal(Futex *addr) {
 	_umtx_op(addr, UMTX_OP_WAKE, 1, 0, 0);
 }
 
-gb_internal void futex_broadcast(Futex *addr) {
+static void futex_broadcast(Futex *addr) {
 	_umtx_op(addr, UMTX_OP_WAKE, INT32_MAX, 0, 0);
 }
 
-gb_internal void futex_wait(Futex *addr, Footex val) {
+static void futex_wait(Futex *addr, Footex val) {
 	for (;;) {
 		int ret = _umtx_op(addr, UMTX_OP_WAIT_UINT, val, 0, NULL);
 		if (ret == -1) {
@@ -746,7 +746,7 @@ gb_internal void futex_wait(Futex *addr, Footex val) {
 
 #include <sys/futex.h>
 
-gb_internal void futex_signal(Futex *f) {
+static void futex_signal(Futex *f) {
 	for (;;) {
 		int ret = futex((volatile uint32_t *)f, FUTEX_WAKE | FUTEX_PRIVATE_FLAG, 1, NULL, NULL);
 		if (ret == -1) {
@@ -763,7 +763,7 @@ gb_internal void futex_signal(Futex *f) {
 }
 
 
-gb_internal void futex_broadcast(Futex *f) {
+static void futex_broadcast(Futex *f) {
 	for (;;) {
 		int ret = futex((volatile uint32_t *)f, FUTEX_WAKE | FUTEX_PRIVATE_FLAG, INT32_MAX, NULL, NULL);
 		if (ret == -1) {
@@ -779,7 +779,7 @@ gb_internal void futex_broadcast(Futex *f) {
 	}
 }
 
-gb_internal void futex_wait(Futex *f, Footex val) {
+static void futex_wait(Futex *f, Footex val) {
 	for (;;) {
 		int ret = futex((volatile uint32_t *)f, FUTEX_WAIT | FUTEX_PRIVATE_FLAG, val, NULL, NULL);
 		if (ret == -1) {
@@ -824,7 +824,7 @@ gb_internal void futex_wait(Futex *f, Footex val) {
 extern "C" int __ulock_wait(uint32_t operation, void *addr, uint64_t value, uint32_t timeout); /* timeout is specified in microseconds */
 extern "C" int __ulock_wake(uint32_t operation, void *addr, uint64_t wake_value);
 
-gb_internal void futex_signal(Futex *f) {
+static void futex_signal(Futex *f) {
 	#ifdef DARWIN_WAIT_ON_ADDRESS_AVAILABLE
 	if (__builtin_available(macOS 14.4, *)) {
 		for (;;) {
@@ -868,7 +868,7 @@ gb_internal void futex_signal(Futex *f) {
 	#endif
 }
 
-gb_internal void futex_broadcast(Futex *f) {
+static void futex_broadcast(Futex *f) {
 	#ifdef DARWIN_WAIT_ON_ADDRESS_AVAILABLE
 	if (__builtin_available(macOS 14.4, *)) {
 		for (;;) {
@@ -913,7 +913,7 @@ gb_internal void futex_broadcast(Futex *f) {
 	#endif
 }
 
-gb_internal void futex_wait(Futex *f, Footex val) {
+static void futex_wait(Futex *f, Footex val) {
 	#ifdef DARWIN_WAIT_ON_ADDRESS_AVAILABLE
 	if (__builtin_available(macOS 14.4, *)) {
 		for (;;) {
@@ -966,15 +966,15 @@ gb_internal void futex_wait(Futex *f, Footex val) {
 
 #elif defined(GB_SYSTEM_WINDOWS)
 
-gb_internal void futex_signal(Futex *f) {
+static void futex_signal(Futex *f) {
 	WakeByAddressSingle(f);
 }
 
-gb_internal void futex_broadcast(Futex *f) {
+static void futex_broadcast(Futex *f) {
 	WakeByAddressAll(f);
 }
 
-gb_internal void futex_wait(Futex *f, Footex val) {
+static void futex_wait(Futex *f, Footex val) {
 	do {
 		WaitOnAddress(f, (void *)&val, sizeof(val), INFINITE);
 	} while (f->load() == val);
@@ -1010,19 +1010,19 @@ struct _Spinlock {
 };
 
 struct Futex_Waitq;
- 
+
 struct Futex_Waiter {
 	_Spinlock lock;
 	pthread_t thread;
 	Futex *futex;
 	Futex_Waitq *waitq;
-	Futex_Waiter *prev, *next;	
+	Futex_Waiter *prev, *next;
 };
- 
+
 struct Futex_Waitq {
 	_Spinlock lock;
 	Futex_Waiter list;
- 
+
 	void init() {
 		auto head = &list;
 		head->prev = head->next = head;
@@ -1031,7 +1031,7 @@ struct Futex_Waitq {
 
 // FIXME: This approach may scale badly in the future,
 // possible solution - hash map (leads to deadlocks now).
- 
+
 Futex_Waitq g_waitq = {
 	.lock = ATOMIC_FLAG_INIT,
 	.list = {
@@ -1039,17 +1039,17 @@ Futex_Waitq g_waitq = {
 		.next = &g_waitq.list,
 	},
 };
- 
+
 Futex_Waitq *get_waitq(Futex *f) {
 	// Future hash map method...
 	return &g_waitq;
 }
- 
+
 void futex_signal(Futex *f) {
 	auto waitq = get_waitq(f);
- 
+
 	waitq->lock.lock();
- 
+
 	auto head = &waitq->list;
 	for (auto waiter = head->next; waiter != head; waiter = waiter->next) {
 		if (waiter->futex != f) {
@@ -1059,15 +1059,15 @@ void futex_signal(Futex *f) {
 		pthread_kill(waiter->thread, SIGCONT);
 		return;
 	}
- 
+
 	waitq->lock.unlock();
 }
- 
+
 void futex_broadcast(Futex *f) {
 	auto waitq = get_waitq(f);
- 
+
 	waitq->lock.lock();
- 
+
 	auto head = &waitq->list;
 	for (auto waiter = head->next; waiter != head; waiter = waiter->next) {
 		if (waiter->futex != f) {
@@ -1081,10 +1081,10 @@ void futex_broadcast(Futex *f) {
 			pthread_kill(waiter->thread, SIGCONT);
 		}
 	}
- 
+
 	waitq->lock.unlock();
 }
- 
+
 void futex_wait(Futex *f, Footex val) {
 	Futex_Waiter waiter;
 	waiter.thread = pthread_self();
@@ -1105,16 +1105,16 @@ void futex_wait(Futex *f, Footex val) {
 	waiter.waitq = waitq;
 	waiter.lock.init();
 	waiter.lock.lock();
- 
+
 	auto head = &waitq->list;
 	waiter.prev = head->prev;
 	waiter.next = head;
 	waiter.prev->next = &waiter;
 	waiter.next->prev = &waiter;
- 
+
 	waiter.prev->next = &waiter;
 	waiter.next->prev = &waiter;
- 
+
 	sigset_t old_mask, mask;
 	sigemptyset(&mask);
 	sigaddset(&mask, SIGCONT);
@@ -1139,12 +1139,12 @@ void futex_wait(Futex *f, Footex val) {
 				waiter.lock.lock();
 			}
 	}
- 
+
 	waiter.prev->next = waiter.next;
 	waiter.next->prev = waiter.prev;
- 
+
 	pthread_sigmask(SIG_SETMASK, &old_mask, NULL);
- 
+
 	waiter.lock.unlock();
 	waitq->lock.unlock();
 }

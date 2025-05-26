@@ -1,6 +1,6 @@
 // Generates Documentation
 
-gb_global int print_entity_kind_ordering[Entity_Count] = {
+static int print_entity_kind_ordering[Entity_Count] = {
 	/*Invalid*/     -1,
 	/*Constant*/    0,
 	/*Variable*/    1,
@@ -13,7 +13,7 @@ gb_global int print_entity_kind_ordering[Entity_Count] = {
 	/*Nil*/         -1,
 	/*Label*/       -1,
 };
-gb_global char const *print_entity_names[Entity_Count] = {
+static char const *print_entity_names[Entity_Count] = {
 	/*Invalid*/     "",
 	/*Constant*/    "constants",
 	/*Variable*/    "variables",
@@ -28,7 +28,7 @@ gb_global char const *print_entity_names[Entity_Count] = {
 };
 
 
-gb_internal GB_COMPARE_PROC(cmp_entities_for_printing) {
+static GB_COMPARE_PROC(cmp_entities_for_printing) {
 	GB_ASSERT(a != nullptr);
 	GB_ASSERT(b != nullptr);
 	Entity *x = *cast(Entity **)a;
@@ -55,7 +55,7 @@ gb_internal GB_COMPARE_PROC(cmp_entities_for_printing) {
 	return res;
 }
 
-gb_internal GB_COMPARE_PROC(cmp_ast_package_by_name) {
+static GB_COMPARE_PROC(cmp_ast_package_by_name) {
 	GB_ASSERT(a != nullptr);
 	GB_ASSERT(b != nullptr);
 	AstPackage *x = *cast(AstPackage **)a;
@@ -66,7 +66,7 @@ gb_internal GB_COMPARE_PROC(cmp_ast_package_by_name) {
 #include "docs_format.cpp"
 #include "docs_writer.cpp"
 
-gb_internal void print_doc_line(i32 indent, String const &data) {
+static void print_doc_line(i32 indent, String const &data) {
 	while (indent --> 0) {
 		gb_printf("\t");
 	}
@@ -74,7 +74,7 @@ gb_internal void print_doc_line(i32 indent, String const &data) {
 	gb_printf("\n");
 }
 
-gb_internal void print_doc_line(i32 indent, char const *fmt, ...) {
+static void print_doc_line(i32 indent, char const *fmt, ...) {
 	while (indent --> 0) {
 		gb_printf("\t");
 	}
@@ -84,7 +84,7 @@ gb_internal void print_doc_line(i32 indent, char const *fmt, ...) {
 	va_end(va);
 	gb_printf("\n");
 }
-gb_internal void print_doc_line_no_newline(i32 indent, String const &data) {
+static void print_doc_line_no_newline(i32 indent, String const &data) {
 	while (indent --> 0) {
 		gb_printf("\t");
 	}
@@ -92,7 +92,7 @@ gb_internal void print_doc_line_no_newline(i32 indent, String const &data) {
 }
 
 
-gb_internal bool print_doc_comment_group_string(i32 indent, CommentGroup *g) {
+static bool print_doc_comment_group_string(i32 indent, CommentGroup *g) {
 	if (g == nullptr) {
 		return false;
 	}
@@ -181,7 +181,7 @@ gb_internal bool print_doc_comment_group_string(i32 indent, CommentGroup *g) {
 
 
 
-gb_internal void print_doc_expr(Ast *expr) {
+static void print_doc_expr(Ast *expr) {
 	gbString s = nullptr;
 	if (build_context.cmd_doc_flags & CmdDocFlag_Short) {
 		s = expr_to_string_shorthand(expr);
@@ -192,7 +192,7 @@ gb_internal void print_doc_expr(Ast *expr) {
 	gb_string_free(s);
 }
 
-gb_internal void print_doc_package(CheckerInfo *info, AstPackage *pkg) {
+static void print_doc_package(CheckerInfo *info, AstPackage *pkg) {
 	if (pkg == nullptr) {
 		return;
 	}
@@ -306,7 +306,7 @@ gb_internal void print_doc_package(CheckerInfo *info, AstPackage *pkg) {
 
 }
 
-gb_internal void generate_documentation(Checker *c) {
+static void generate_documentation(Checker *c) {
 	CheckerInfo *info = &c->info;
 
 	if (build_context.cmd_doc_flags & CmdDocFlag_DocFormat) {

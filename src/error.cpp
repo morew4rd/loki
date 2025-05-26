@@ -25,10 +25,10 @@ struct ErrorCollector {
 	std::atomic<bool> curr_error_value_set;
 };
 
-gb_global ErrorCollector global_error_collector;
+static ErrorCollector global_error_collector;
 
 
-gb_internal void push_error_value(TokenPos const &pos, ErrorValueKind kind = ErrorValue_Error) {
+static void push_error_value(TokenPos const &pos, ErrorValueKind kind = ErrorValue_Error) {
 	GB_ASSERT_MSG(global_error_collector.curr_error_value_set.load() == false, "Possible race condition in error handling system, please report this with an issue");
 	ErrorValue ev = {kind, pos};
 	ev.msg.allocator = heap_allocator();
@@ -37,7 +37,7 @@ gb_internal void push_error_value(TokenPos const &pos, ErrorValueKind kind = Err
 	global_error_collector.curr_error_value_set.store(true);
 }
 
-gb_internal void pop_error_value(void) {
+static void pop_error_value(void) {
 	mutex_lock(&global_error_collector.mutex);
 	if (global_error_collector.curr_error_value_set.load()) {
 		array_add(&global_error_collector.error_values, global_error_collector.curr_error_value);
@@ -49,41 +49,41 @@ gb_internal void pop_error_value(void) {
 }
 
 
-gb_internal void try_pop_error_value(void) {
+static void try_pop_error_value(void) {
 	if (!global_error_collector.in_block.load()) {
 		pop_error_value();
 	}
 }
 
-gb_internal ErrorValue *get_error_value(void) {
+static ErrorValue *get_error_value(void) {
 	GB_ASSERT_MSG(global_error_collector.curr_error_value_set.load() == true, "Possible race condition in error handling system, please report this with an issue");
 	return &global_error_collector.curr_error_value;
 }
 
 
 
-gb_internal bool any_errors(void) {
+static bool any_errors(void) {
 	return global_error_collector.count.load() != 0;
 }
-gb_internal bool any_warnings(void) {
+static bool any_warnings(void) {
 	return global_error_collector.warning_count.load() != 0;
 }
 
 
-gb_internal void init_global_error_collector(void) {
+static void init_global_error_collector(void) {
 	array_init(&global_error_collector.error_values, heap_allocator());
 	array_init(&global_file_path_strings, heap_allocator(), 1, 4096);
 	array_init(&global_files,             heap_allocator(), 1, 4096);
 }
 
-gb_internal isize MAX_ERROR_COLLECTOR_COUNT(void);
+static isize MAX_ERROR_COLLECTOR_COUNT(void);
 
 
 // temporary
 // defined in build_settings.cpp
-gb_internal char *token_pos_to_string(TokenPos const &pos);
+static char *token_pos_to_string(TokenPos const &pos);
 
-gb_internal bool set_file_path_string(i32 index, String const &path) {
+static bool set_file_path_string(i32 index, String const &path) {
 	bool ok = false;
 	GB_ASSERT(index >= 0);
 	mutex_lock(&global_error_collector.path_mutex);
@@ -103,7 +103,7 @@ gb_internal bool set_file_path_string(i32 index, String const &path) {
 	return ok;
 }
 
-gb_internal bool thread_safe_set_ast_file_from_id(i32 index, AstFile *file) {
+static bool thread_safe_set_ast_file_from_id(i32 index, AstFile *file) {
 	bool ok = false;
 	GB_ASSERT(index >= 0);
 	mutex_lock(&global_error_collector.path_mutex);
@@ -122,7 +122,7 @@ gb_internal bool thread_safe_set_ast_file_from_id(i32 index, AstFile *file) {
 	return ok;
 }
 
-gb_internal String get_file_path_string(i32 index) {
+static String get_file_path_string(i32 index) {
 	GB_ASSERT(index >= 0);
 	mutex_lock(&global_error_collector.path_mutex);
 	mutex_lock(&global_files_mutex);
@@ -137,7 +137,7 @@ gb_internal String get_file_path_string(i32 index) {
 	return path;
 }
 
-gb_internal AstFile *thread_safe_get_ast_file_from_id(i32 index) {
+static AstFile *thread_safe_get_ast_file_from_id(i32 index) {
 	GB_ASSERT(index >= 0);
 	mutex_lock(&global_error_collector.path_mutex);
 	mutex_lock(&global_files_mutex);
@@ -155,29 +155,29 @@ gb_internal AstFile *thread_safe_get_ast_file_from_id(i32 index) {
 
 
 // NOTE: defined in build_settings.cpp
-gb_internal bool global_warnings_as_errors(void);
-gb_internal bool global_ignore_warnings(void);
-gb_internal bool show_error_line(void);
-gb_internal bool terse_errors(void);
-gb_internal bool json_errors(void);
-gb_internal bool has_ansi_terminal_colours(void);
-gb_internal gbString get_file_line_as_string(TokenPos const &pos, i32 *offset);
+static bool global_warnings_as_errors(void);
+static bool global_ignore_warnings(void);
+static bool show_error_line(void);
+static bool terse_errors(void);
+static bool json_errors(void);
+static bool has_ansi_terminal_colours(void);
+static gbString get_file_line_as_string(TokenPos const &pos, i32 *offset);
 
-gb_internal void warning(Token const &token, char const *fmt, ...);
-gb_internal void error(Token const &token, char const *fmt, ...);
-gb_internal void error(TokenPos pos, char const *fmt, ...);
-gb_internal void error_line(char const *fmt, ...);
-gb_internal void syntax_error(Token const &token, char const *fmt, ...);
-gb_internal void syntax_error(TokenPos pos, char const *fmt, ...);
-gb_internal void syntax_warning(Token const &token, char const *fmt, ...);
-gb_internal void compiler_error(char const *fmt, ...);
-gb_internal void print_all_errors(void);
+static void warning(Token const &token, char const *fmt, ...);
+static void error(Token const &token, char const *fmt, ...);
+static void error(TokenPos pos, char const *fmt, ...);
+static void error_line(char const *fmt, ...);
+static void syntax_error(Token const &token, char const *fmt, ...);
+static void syntax_error(TokenPos pos, char const *fmt, ...);
+static void syntax_warning(Token const &token, char const *fmt, ...);
+static void compiler_error(char const *fmt, ...);
+static void print_all_errors(void);
 
 
 #define ERROR_OUT_PROC(name) void name(char const *fmt, va_list va)
 typedef ERROR_OUT_PROC(ErrorOutProc);
 
-gb_internal ERROR_OUT_PROC(default_error_out_va) {
+static ERROR_OUT_PROC(default_error_out_va) {
 	char buf[4096] = {};
 	isize len = gb_snprintf_va(buf, gb_size_of(buf), fmt, va);
 	isize n = len-1;
@@ -198,14 +198,14 @@ gb_internal ERROR_OUT_PROC(default_error_out_va) {
 	}
 }
 
-gb_global ErrorOutProc *error_out_va = default_error_out_va;
+static ErrorOutProc *error_out_va = default_error_out_va;
 
-gb_internal void begin_error_block(void) {
+static void begin_error_block(void) {
 	mutex_lock(&global_error_collector.mutex);
 	global_error_collector.in_block.store(true);
 }
 
-gb_internal void end_error_block(void) {
+static void end_error_block(void) {
 	pop_error_value();
 	global_error_collector.in_block.store(false);
 	mutex_unlock(&global_error_collector.mutex);
@@ -215,7 +215,7 @@ gb_internal void end_error_block(void) {
 
 
 
-gb_internal void error_out(char const *fmt, ...) {
+static void error_out(char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	error_out_va(fmt, va);
@@ -240,7 +240,7 @@ enum TerminalColour {
 	TerminalColour_Grey,
 };
 
-gb_internal void terminal_set_colours(TerminalStyle style, TerminalColour foreground) {
+static void terminal_set_colours(TerminalStyle style, TerminalColour foreground) {
 	if (has_ansi_terminal_colours()) {
 		char const *ss = "0";
 		switch (style) {
@@ -261,14 +261,14 @@ gb_internal void terminal_set_colours(TerminalStyle style, TerminalColour foregr
 		}
 	}
 }
-gb_internal void terminal_reset_colours(void) {
+static void terminal_reset_colours(void) {
 	if (has_ansi_terminal_colours()) {
 		error_out("\x1b[0m");
 	}
 }
 
 
-gb_internal isize show_error_on_line(TokenPos const &pos, TokenPos end) {
+static isize show_error_on_line(TokenPos const &pos, TokenPos end) {
 	get_error_value()->end = end;
 	if (!show_error_line()) {
 		return -1;
@@ -504,16 +504,16 @@ gb_internal isize show_error_on_line(TokenPos const &pos, TokenPos end) {
 	return squiggle_padding;
 }
 
-gb_internal void error_out_empty(void) {
+static void error_out_empty(void) {
 	error_out("");
 }
-gb_internal void error_out_pos(TokenPos pos) {
+static void error_out_pos(TokenPos pos) {
 	terminal_set_colours(TerminalStyle_Bold, TerminalColour_White);
 	error_out("%s ", token_pos_to_string(pos));
 	terminal_reset_colours();
 }
 
-gb_internal void error_out_coloured(char const *str, TerminalStyle style, TerminalColour foreground) {
+static void error_out_coloured(char const *str, TerminalStyle style, TerminalColour foreground) {
 	terminal_set_colours(style, foreground);
 	error_out(str);
 	terminal_reset_colours();
@@ -521,7 +521,7 @@ gb_internal void error_out_coloured(char const *str, TerminalStyle style, Termin
 
 
 
-gb_internal void error_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
+static void error_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
 	global_error_collector.count.fetch_add(1);
 	mutex_lock(&global_error_collector.mutex);
 	if (global_error_collector.count > MAX_ERROR_COLLECTOR_COUNT()) {
@@ -551,7 +551,7 @@ gb_internal void error_va(TokenPos const &pos, TokenPos end, char const *fmt, va
 	mutex_unlock(&global_error_collector.mutex);
 }
 
-gb_internal void warning_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
+static void warning_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
 	if (global_warnings_as_errors()) {
 		error_va(pos, end, fmt, va);
 		return;
@@ -587,11 +587,11 @@ gb_internal void warning_va(TokenPos const &pos, TokenPos end, char const *fmt, 
 }
 
 
-gb_internal void error_line_va(char const *fmt, va_list va) {
+static void error_line_va(char const *fmt, va_list va) {
 	error_out_va(fmt, va);
 }
 
-gb_internal void error_no_newline_va(TokenPos const &pos, char const *fmt, va_list va) {
+static void error_no_newline_va(TokenPos const &pos, char const *fmt, va_list va) {
 	global_error_collector.count.fetch_add(1);
 	mutex_lock(&global_error_collector.mutex);
 	if (global_error_collector.count.load() > MAX_ERROR_COLLECTOR_COUNT()) {
@@ -623,7 +623,7 @@ gb_internal void error_no_newline_va(TokenPos const &pos, char const *fmt, va_li
 }
 
 
-gb_internal void syntax_error_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
+static void syntax_error_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
 	global_error_collector.count.fetch_add(1);
 	mutex_lock(&global_error_collector.mutex);
 	if (global_error_collector.count > MAX_ERROR_COLLECTOR_COUNT()) {
@@ -655,7 +655,7 @@ gb_internal void syntax_error_va(TokenPos const &pos, TokenPos end, char const *
 	mutex_unlock(&global_error_collector.mutex);
 }
 
-gb_internal void syntax_error_with_verbose_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
+static void syntax_error_with_verbose_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
 	global_error_collector.count.fetch_add(1);
 	mutex_lock(&global_error_collector.mutex);
 	if (global_error_collector.count > MAX_ERROR_COLLECTOR_COUNT()) {
@@ -690,7 +690,7 @@ gb_internal void syntax_error_with_verbose_va(TokenPos const &pos, TokenPos end,
 }
 
 
-gb_internal void syntax_warning_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
+static void syntax_warning_va(TokenPos const &pos, TokenPos end, char const *fmt, va_list va) {
 	if (global_warnings_as_errors()) {
 		syntax_error_va(pos, end, fmt, va);
 		return;
@@ -728,21 +728,21 @@ gb_internal void syntax_warning_va(TokenPos const &pos, TokenPos end, char const
 
 
 
-gb_internal void warning(Token const &token, char const *fmt, ...) {
+static void warning(Token const &token, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	warning_va(token.pos, {}, fmt, va);
 	va_end(va);
 }
 
-gb_internal void error(Token const &token, char const *fmt, ...) {
+static void error(Token const &token, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	error_va(token.pos, {}, fmt, va);
 	va_end(va);
 }
 
-gb_internal void error(TokenPos pos, char const *fmt, ...) {
+static void error(TokenPos pos, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	Token token = {};
@@ -751,7 +751,7 @@ gb_internal void error(TokenPos pos, char const *fmt, ...) {
 	va_end(va);
 }
 
-gb_internal void error_line(char const *fmt, ...) {
+static void error_line(char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	error_line_va(fmt, va);
@@ -759,28 +759,28 @@ gb_internal void error_line(char const *fmt, ...) {
 }
 
 
-gb_internal void syntax_error(Token const &token, char const *fmt, ...) {
+static void syntax_error(Token const &token, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	syntax_error_va(token.pos, {}, fmt, va);
 	va_end(va);
 }
 
-gb_internal void syntax_error(TokenPos pos, char const *fmt, ...) {
+static void syntax_error(TokenPos pos, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	syntax_error_va(pos, {}, fmt, va);
 	va_end(va);
 }
 
-gb_internal void syntax_warning(Token const &token, char const *fmt, ...) {
+static void syntax_warning(Token const &token, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	syntax_warning_va(token.pos, {}, fmt, va);
 	va_end(va);
 }
 
-gb_internal void syntax_error_with_verbose(TokenPos pos, TokenPos end, char const *fmt, ...) {
+static void syntax_error_with_verbose(TokenPos pos, TokenPos end, char const *fmt, ...) {
 	va_list va;
 	va_start(va, fmt);
 	syntax_error_with_verbose_va(pos, end, fmt, va);
@@ -789,7 +789,7 @@ gb_internal void syntax_error_with_verbose(TokenPos pos, TokenPos end, char cons
 
 
 
-gb_internal void compiler_error(char const *fmt, ...) {
+static void compiler_error(char const *fmt, ...) {
 	if (any_errors() || any_warnings()) {
 		print_all_errors();
 	}
@@ -805,7 +805,7 @@ gb_internal void compiler_error(char const *fmt, ...) {
 }
 
 
-gb_internal void exit_with_errors(void) {
+static void exit_with_errors(void) {
 	if (any_errors() || any_warnings()) {
 		print_all_errors();
 	}
@@ -814,13 +814,13 @@ gb_internal void exit_with_errors(void) {
 
 
 
-gb_internal int error_value_cmp(void const *a, void const *b) {
+static int error_value_cmp(void const *a, void const *b) {
 	ErrorValue *x = cast(ErrorValue *)a;
 	ErrorValue *y = cast(ErrorValue *)b;
 	return token_pos_cmp(x->pos, y->pos);
 }
 
-gb_global String error_article_table[][2] = {
+static String error_article_table[][2] = {
 	{str_lit("a "),  str_lit("bit_set literal")},
 	{str_lit("a "),  str_lit("constant declaration")},
 	{str_lit("a "),  str_lit("dynamiic array literal")},
@@ -840,7 +840,7 @@ gb_global String error_article_table[][2] = {
 };
 
 // Returns definite or indefinite article matching `context_name`, or "" if not found.
-gb_internal String error_article(String context_name) {
+static String error_article(String context_name) {
 	for (int i = 0; i < gb_count_of(error_article_table); i += 1) {
 		if (context_name == error_article_table[i][1]) {
 			return error_article_table[i][0];
@@ -849,9 +849,9 @@ gb_internal String error_article(String context_name) {
 	return str_lit("");
 }
 
-gb_internal bool errors_already_printed = false;
+static bool errors_already_printed = false;
 
-gb_internal void print_all_errors(void) {
+static void print_all_errors(void) {
 	if (errors_already_printed) {
 		if (global_error_collector.warning_count.load() == global_error_collector.error_values.count) {
 			for (ErrorValue &ev : global_error_collector.error_values) {

@@ -10,14 +10,14 @@ struct LinkerData {
 	bool     needs_system_library_linked;
 };
 
-gb_internal i32 system_exec_command_line_app(char const *name, char const *fmt, ...);
-gb_internal bool system_exec_command_line_app_output(char const *command, gbString *output);
+static i32 system_exec_command_line_app(char const *name, char const *fmt, ...);
+static bool system_exec_command_line_app_output(char const *command, gbString *output);
 
-gb_internal void linker_enable_system_library_linking(LinkerData *ld) {
+static void linker_enable_system_library_linking(LinkerData *ld) {
 	ld->needs_system_library_linked = true;
 }
 
-gb_internal void linker_data_init(LinkerData *ld, CheckerInfo *info, String const &init_fullpath) {
+static void linker_data_init(LinkerData *ld, CheckerInfo *info, String const &init_fullpath) {
 	gbAllocator ha = heap_allocator();
 	array_init(&ld->output_object_paths, ha);
 	array_init(&ld->output_temp_paths,   ha);
@@ -52,7 +52,7 @@ gb_internal void linker_data_init(LinkerData *ld, CheckerInfo *info, String cons
 
 }
 
-gb_internal i32 linker_stage(LinkerData *gen) {
+static i32 linker_stage(LinkerData *gen) {
 	i32 result = 0;
 	Timings *timings = &global_timings;
 
@@ -439,17 +439,17 @@ try_cross_linking:;
 			#if !defined(GB_SYSTEM_WINDOWS)
 				lib_str = gb_string_appendc(lib_str, "-L/ ");
 			#endif
-			
+
 			StringSet asm_files = {};
 			string_set_init(&asm_files, 64);
 			defer (string_set_destroy(&asm_files));
-			
+
 			StringSet min_libs_set = {};
 			string_set_init(&min_libs_set, 64);
 			defer (string_set_destroy(&min_libs_set));
 
 			String prev_lib = {};
-			
+
 			for (Entity *e : gen->foreign_libraries) {
 				GB_ASSERT(e->kind == Entity_LibraryName);
 				// NOTE(bill): Add these before the linking values
@@ -557,7 +557,7 @@ try_cross_linking:;
 								LIT(obj_format),
 								LIT(obj_file),
 								LIT(build_context.extra_assembler_flags)
-							);						
+							);
 							if (result) {
 								gb_printf_err("executing `nasm` to assemble foreing import of %.*s failed.\n\tSuggestion: `nasm` does not ship with the compiler and should be installed with your system's package manager.\n", LIT(asm_file));
 								return result;

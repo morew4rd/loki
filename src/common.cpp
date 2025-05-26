@@ -31,15 +31,15 @@
 #include <string.h>
 #include <atomic> // Because I wanted the C++11 memory order semantics, of which gb.h does not offer (because it was a C89 library)
 
-gb_internal gbAllocator heap_allocator(void);
+static gbAllocator heap_allocator(void);
 
 #define for_array_off(index_, off_, array_) for (isize index_ = off_; index_ < (array_).count; index_++)
 #define for_array(index_, array_) for_array_off(index_, 0, array_)
 
-gb_internal i32 next_pow2(i32 n);
-gb_internal i64 next_pow2(i64 n);
-gb_internal isize next_pow2_isize(isize n);
-gb_internal void debugf(char const *fmt, ...);
+static i32 next_pow2(i32 n);
+static i64 next_pow2(i64 n);
+static isize next_pow2_isize(isize n);
+static void debugf(char const *fmt, ...);
 
 #if defined(GB_SYSTEM_WINDOWS) && defined(GB_ARCH_32_BIT)
 #error Odin on Windows requires a 64-bit build-system. The 'Developer Command Prompt' for VS still defaults to 32-bit shell. The 64-bit shell can be found under the name 'x64 Native Tools Command Prompt' for VS. For more information, please see https://odin-lang.org/docs/install/#for-windows
@@ -73,14 +73,14 @@ template <> struct TypeIsPtrSizedInteger<usize> { enum {value = true}; };
 	#pragma warning(disable: 4505)
 #endif
 
-gb_internal gb_inline bool is_power_of_two(i64 x) {
+static gb_inline bool is_power_of_two(i64 x) {
 	if (x <= 0) {
 		return false;
 	}
 	return !(x & (x-1));
 }
 
-gb_internal int isize_cmp(isize x, isize y) {
+static int isize_cmp(isize x, isize y) {
 	if (x < y) {
 		return -1;
 	} else if (x > y) {
@@ -88,7 +88,7 @@ gb_internal int isize_cmp(isize x, isize y) {
 	}
 	return 0;
 }
-gb_internal int u64_cmp(u64 x, u64 y) {
+static int u64_cmp(u64 x, u64 y) {
 	if (x < y) {
 		return -1;
 	} else if (x > y) {
@@ -96,7 +96,7 @@ gb_internal int u64_cmp(u64 x, u64 y) {
 	}
 	return 0;
 }
-gb_internal int i64_cmp(i64 x, i64 y) {
+static int i64_cmp(i64 x, i64 y) {
 	if (x < y) {
 		return -1;
 	} else if (x > y) {
@@ -104,7 +104,7 @@ gb_internal int i64_cmp(i64 x, i64 y) {
 	}
 	return 0;
 }
-gb_internal int i32_cmp(i32 x, i32 y) {
+static int i32_cmp(i32 x, i32 y) {
 	if (x < y) {
 		return -1;
 	} else if (x > y) {
@@ -113,10 +113,10 @@ gb_internal int i32_cmp(i32 x, i32 y) {
 	return 0;
 }
 
-gb_internal u32 fnv32a(void const *data, isize len) {
+static u32 fnv32a(void const *data, isize len) {
 	u8 const *bytes = cast(u8 const *)data;
 	u32 h = 0x811c9dc5;
-	
+
 	for (; len >= 8; len -= 8, bytes += 8) {
 		h = (h ^ bytes[0]) * 0x01000193;
 		h = (h ^ bytes[1]) * 0x01000193;
@@ -134,10 +134,10 @@ gb_internal u32 fnv32a(void const *data, isize len) {
 	return h;
 }
 
-gb_internal u64 fnv64a(void const *data, isize len, u64 seed=0xcbf29ce484222325ull) {
+static u64 fnv64a(void const *data, isize len, u64 seed=0xcbf29ce484222325ull) {
 	u8 const *bytes = cast(u8 const *)data;
 	u64 h = seed;
-	
+
 	for (; len >= 8; len -= 8, bytes += 8) {
 		h = (h ^ bytes[0]) * 0x100000001b3ull;
 		h = (h ^ bytes[1]) * 0x100000001b3ull;
@@ -155,7 +155,7 @@ gb_internal u64 fnv64a(void const *data, isize len, u64 seed=0xcbf29ce484222325u
 	return h;
 }
 
-gb_internal u64 u64_digit_value(Rune r) {
+static u64 u64_digit_value(Rune r) {
 	switch (r) {
 	case '0': return 0;
 	case '1': return 1;
@@ -184,7 +184,7 @@ gb_internal u64 u64_digit_value(Rune r) {
 }
 
 
-gb_internal u64 u64_from_string(String string) {
+static u64 u64_from_string(String string) {
 	u64 base = 10;
 	bool has_prefix = false;
 	if (string.len > 2 && string[0] == '0') {
@@ -221,13 +221,13 @@ gb_internal u64 u64_from_string(String string) {
 	return result;
 }
 
-gb_global char const global_num_to_char_table[] =
+static char const global_num_to_char_table[] =
 	"0123456789"
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	"abcdefghijklmnopqrstuvwxyz"
 	"@$";
 
-gb_internal String u64_to_string(u64 v, char *out_buf, isize out_buf_len) {
+static String u64_to_string(u64 v, char *out_buf, isize out_buf_len) {
 	char buf[32] = {0};
 	isize i = gb_size_of(buf);
 
@@ -242,7 +242,7 @@ gb_internal String u64_to_string(u64 v, char *out_buf, isize out_buf_len) {
 	gb_memmove(out_buf, &buf[i], len);
 	return make_string(cast(u8 *)out_buf, len);
 }
-gb_internal String i64_to_string(i64 a, char *out_buf, isize out_buf_len) {
+static String i64_to_string(i64 a, char *out_buf, isize out_buf_len) {
 	char buf[32] = {0};
 	isize i = gb_size_of(buf);
 	bool negative = false;
@@ -269,7 +269,7 @@ gb_internal String i64_to_string(i64 a, char *out_buf, isize out_buf_len) {
 }
 
 
-gb_global i64 const signed_integer_mins[] = {
+static i64 const signed_integer_mins[] = {
 	0,
 	-128ll,
 	-32768ll,
@@ -280,7 +280,7 @@ gb_global i64 const signed_integer_mins[] = {
 	0,
 	(-9223372036854775807ll - 1ll),
 };
-gb_global i64 const signed_integer_maxs[] = {
+static i64 const signed_integer_maxs[] = {
 	0,
 	127ll,
 	32767ll,
@@ -291,7 +291,7 @@ gb_global i64 const signed_integer_maxs[] = {
 	0,
 	9223372036854775807ll,
 };
-gb_global u64 const unsigned_integer_maxs[] = {
+static u64 const unsigned_integer_maxs[] = {
 	0,
 	255ull,
 	65535ull,
@@ -304,17 +304,17 @@ gb_global u64 const unsigned_integer_maxs[] = {
 };
 
 
-gb_internal bool add_overflow_u64(u64 x, u64 y, u64 *result) {
+static bool add_overflow_u64(u64 x, u64 y, u64 *result) {
 	*result = x + y;
 	return *result < x || *result < y;
 }
 
-gb_internal bool sub_overflow_u64(u64 x, u64 y, u64 *result) {
+static bool sub_overflow_u64(u64 x, u64 y, u64 *result) {
 	*result = x - y;
 	return *result > x;
 }
 
-gb_internal void mul_overflow_u64(u64 x, u64 y, u64 *lo, u64 *hi) {
+static void mul_overflow_u64(u64 x, u64 y, u64 *lo, u64 *hi) {
 #if defined(GB_COMPILER_MSVC) && defined(GB_ARCH_64_BIT)
 	*lo = _umul128(x, y, hi);
 #else
@@ -343,8 +343,8 @@ gb_internal void mul_overflow_u64(u64 x, u64 y, u64 *lo, u64 *hi) {
 
 
 
-gb_global String global_module_path = {0};
-gb_global bool global_module_path_set = false;
+static String global_module_path = {0};
+static bool global_module_path_set = false;
 
 
 #include "ptr_map.cpp"
@@ -355,7 +355,7 @@ gb_global bool global_module_path_set = false;
 #include "thread_pool.cpp"
 
 
-gb_internal String obfuscate_string(String const &s, char const *prefix) {
+static String obfuscate_string(String const &s, char const *prefix) {
 	if (s.len == 0) {
 		return s;
 	}
@@ -366,7 +366,7 @@ gb_internal String obfuscate_string(String const &s, char const *prefix) {
 	return make_string_c(res);
 }
 
-gb_internal i32 obfuscate_i32(i32 i) {
+static i32 obfuscate_i32(i32 i) {
 	i32 x = cast(i32)gb_fnv64a(&i, sizeof(i));
 	if (x < 0) {
 		x = 1-x;
@@ -383,9 +383,9 @@ struct StringIntern {
 };
 
 PtrMap<uintptr, StringIntern *> string_intern_map = {}; // Key: u64
-gb_global Arena string_intern_arena = {};
+static Arena string_intern_arena = {};
 
-gb_internal char const *string_intern(char const *text, isize len) {
+static char const *string_intern(char const *text, isize len) {
 	u64 hash = gb_fnv64a(text, len);
 	uintptr key = cast(uintptr)(hash ? hash : 1);
 	StringIntern **found = map_get(&string_intern_map, key);
@@ -406,18 +406,18 @@ gb_internal char const *string_intern(char const *text, isize len) {
 	return new_intern->str;
 }
 
-gb_internal char const *string_intern(String const &string) {
+static char const *string_intern(String const &string) {
 	return string_intern(cast(char const *)string.text, string.len);
 }
 
-gb_internal void init_string_interner(void) {
+static void init_string_interner(void) {
 	map_init(&string_intern_map);
 }
 
 
 
 
-gb_internal i32 next_pow2(i32 n) {
+static i32 next_pow2(i32 n) {
 	if (n <= 0) {
 		return 0;
 	}
@@ -430,7 +430,7 @@ gb_internal i32 next_pow2(i32 n) {
 	n++;
 	return n;
 }
-gb_internal i64 next_pow2(i64 n) {
+static i64 next_pow2(i64 n) {
 	if (n <= 0) {
 		return 0;
 	}
@@ -444,7 +444,7 @@ gb_internal i64 next_pow2(i64 n) {
 	n++;
 	return n;
 }
-gb_internal isize next_pow2_isize(isize n) {
+static isize next_pow2_isize(isize n) {
 	if (n <= 0) {
 		return 0;
 	}
@@ -460,7 +460,7 @@ gb_internal isize next_pow2_isize(isize n) {
 	n++;
 	return n;
 }
-gb_internal u32 next_pow2_u32(u32 n) {
+static u32 next_pow2_u32(u32 n) {
 	if (n == 0) {
 		return 0;
 	}
@@ -475,7 +475,7 @@ gb_internal u32 next_pow2_u32(u32 n) {
 }
 
 
-gb_internal i32 bit_set_count(u32 x) {
+static i32 bit_set_count(u32 x) {
 	x -= ((x >> 1) & 0x55555555);
 	x = (((x >> 2) & 0x33333333) + (x & 0x33333333));
 	x = (((x >> 4) + x) & 0x0f0f0f0f);
@@ -485,13 +485,13 @@ gb_internal i32 bit_set_count(u32 x) {
 	return cast(i32)(x & 0x0000003f);
 }
 
-gb_internal i64 bit_set_count(u64 x) {
+static i64 bit_set_count(u64 x) {
 	u32 a = *(cast(u32 *)&x);
 	u32 b = *(cast(u32 *)&x + 1);
 	return bit_set_count(a) + bit_set_count(b);
 }
 
-gb_internal u32 floor_log2(u32 x) {
+static u32 floor_log2(u32 x) {
 	x |= x >> 1;
 	x |= x >> 2;
 	x |= x >> 4;
@@ -500,7 +500,7 @@ gb_internal u32 floor_log2(u32 x) {
 	return cast(u32)(bit_set_count(x) - 1);
 }
 
-gb_internal u64 floor_log2(u64 x) {
+static u64 floor_log2(u64 x) {
 	x |= x >> 1;
 	x |= x >> 2;
 	x |= x >> 4;
@@ -511,7 +511,7 @@ gb_internal u64 floor_log2(u64 x) {
 }
 
 
-gb_internal u32 ceil_log2(u32 x) {
+static u32 ceil_log2(u32 x) {
 	i32 y = cast(i32)(x & (x-1));
 	y |= -y;
 	y >>= 32-1;
@@ -523,7 +523,7 @@ gb_internal u32 ceil_log2(u32 x) {
 	return cast(u32)(bit_set_count(x) - 1 - y);
 }
 
-gb_internal u64 ceil_log2(u64 x) {
+static u64 ceil_log2(u64 x) {
 	i64 y = cast(i64)(x & (x-1));
 	y |= -y;
 	y >>= 64-1;
@@ -536,7 +536,7 @@ gb_internal u64 ceil_log2(u64 x) {
 	return cast(u64)(bit_set_count(x) - 1 - y);
 }
 
-gb_internal u32 prev_pow2(u32 n) {
+static u32 prev_pow2(u32 n) {
 	if (n == 0) {
 		return 0;
 	}
@@ -547,7 +547,7 @@ gb_internal u32 prev_pow2(u32 n) {
 	n |= n >> 16;
 	return n - (n >> 1);
 }
-gb_internal i32 prev_pow2(i32 n) {
+static i32 prev_pow2(i32 n) {
 	if (n <= 0) {
 		return 0;
 	}
@@ -558,7 +558,7 @@ gb_internal i32 prev_pow2(i32 n) {
 	n |= n >> 16;
 	return n - (n >> 1);
 }
-gb_internal i64 prev_pow2(i64 n) {
+static i64 prev_pow2(i64 n) {
 	if (n <= 0) {
 		return 0;
 	}
@@ -571,7 +571,7 @@ gb_internal i64 prev_pow2(i64 n) {
 	return n - (n >> 1);
 }
 
-gb_internal u16 f32_to_f16(f32 value) {
+static u16 f32_to_f16(f32 value) {
 	union { u32 i; f32 f; } v;
 	i32 i, s, e, m;
 
@@ -622,7 +622,7 @@ gb_internal u16 f32_to_f16(f32 value) {
 	}
 }
 
-gb_internal f32 f16_to_f32(u16 value) {
+static f32 f16_to_f32(u16 value) {
 	typedef union { u32 u; f32 f; } fp32;
 	fp32 v;
 
@@ -638,7 +638,7 @@ gb_internal f32 f16_to_f32(u16 value) {
 	return v.f;
 }
 
-gb_internal gb_inline f64 gb_sqrt(f64 x) {
+static gb_inline f64 gb_sqrt(f64 x) {
 	return sqrt(x);
 }
 
@@ -666,7 +666,7 @@ gb_internal gb_inline f64 gb_sqrt(f64 x) {
 
 #if defined(GB_SYSTEM_WINDOWS)
 
-gb_internal wchar_t **command_line_to_wargv(wchar_t *cmd_line, int *_argc) {
+static wchar_t **command_line_to_wargv(wchar_t *cmd_line, int *_argc) {
 	u32 i, j;
 
 	u32 len = cast(u32)string16_len(cmd_line);
@@ -733,25 +733,25 @@ gb_internal wchar_t **command_line_to_wargv(wchar_t *cmd_line, int *_argc) {
 
 struct LoadedFile {
 	void *handle;
-	
+
 	void const *data;
 	i32         size;
 };
 enum LoadedFileError {
 	LoadedFile_None,
-	
+
 	LoadedFile_Empty,
 	LoadedFile_FileTooLarge,
 	LoadedFile_Invalid,
 	LoadedFile_NotExists,
 	LoadedFile_Permission,
-	
+
 	LoadedFile_COUNT,
 };
 
-gb_internal LoadedFileError load_file_32(char const *fullpath, LoadedFile *memory_mapped_file, bool copy_file_contents) {
+static LoadedFileError load_file_32(char const *fullpath, LoadedFile *memory_mapped_file, bool copy_file_contents) {
 	LoadedFileError err = LoadedFile_None;
-	
+
 	if (!copy_file_contents) {
 	#if defined(GB_SYSTEM_WINDOWS)
 		TEMPORARY_ALLOCATOR_GUARD();
@@ -766,7 +766,7 @@ gb_internal LoadedFileError load_file_32(char const *fullpath, LoadedFile *memor
 		HANDLE handle = nullptr;
 		HANDLE file_mapping = nullptr;
 		void *file_data = nullptr;
-		
+
 		handle = CreateFileW(w_str, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
 		if (handle == INVALID_HANDLE_VALUE) {
 			handle = nullptr;
@@ -800,19 +800,19 @@ gb_internal LoadedFileError load_file_32(char const *fullpath, LoadedFile *memor
 		memory_mapped_file->data = file_data;
 		memory_mapped_file->size = cast(i32)file_size;
 		return err;
-	
+
 	window_handle_file_error:;
 		{
 			DWORD handle_err = GetLastError();
 			CloseHandle(handle);
 			err = LoadedFile_Invalid;
 			switch (handle_err) {
-			case ERROR_FILE_NOT_FOUND: 
-			case ERROR_PATH_NOT_FOUND: 
+			case ERROR_FILE_NOT_FOUND:
+			case ERROR_PATH_NOT_FOUND:
 			case ERROR_INVALID_DRIVE:
-				err = LoadedFile_NotExists; 
+				err = LoadedFile_NotExists;
 				break;
-			case ERROR_ACCESS_DENIED: 
+			case ERROR_ACCESS_DENIED:
 			case ERROR_INVALID_ACCESS:
 				err = LoadedFile_Permission;
 				break;
@@ -821,7 +821,7 @@ gb_internal LoadedFileError load_file_32(char const *fullpath, LoadedFile *memor
 		}
 	#endif
 	}
-	
+
 	gbFileContents fc = gb_file_read_contents(permanent_allocator(), true, fullpath);
 
 	if (fc.size > I32_MAX) {
@@ -856,7 +856,7 @@ gb_internal LoadedFileError load_file_32(char const *fullpath, LoadedFile *memor
 
 #define USE_DAMERAU_LEVENSHTEIN 1
 
-gb_internal isize levenstein_distance_case_insensitive(String const &a, String const &b) {
+static isize levenstein_distance_case_insensitive(String const &a, String const &b) {
 	TEMPORARY_ALLOCATOR_GUARD();
 
 	isize w = b.len+1;
@@ -917,16 +917,16 @@ struct DidYouMeanAnswers {
 
 enum {MAX_SMALLEST_DID_YOU_MEAN_DISTANCE = 3-USE_DAMERAU_LEVENSHTEIN};
 
-gb_internal DidYouMeanAnswers did_you_mean_make(gbAllocator allocator, isize cap, String const &key) {
+static DidYouMeanAnswers did_you_mean_make(gbAllocator allocator, isize cap, String const &key) {
 	DidYouMeanAnswers d = {};
 	array_init(&d.distances, allocator, 0, cap);
 	d.key = key;
 	return d;
 }
-gb_internal void did_you_mean_destroy(DidYouMeanAnswers *d) {
+static void did_you_mean_destroy(DidYouMeanAnswers *d) {
 	array_free(&d->distances);
 }
-gb_internal void did_you_mean_append(DidYouMeanAnswers *d, String const &target) {
+static void did_you_mean_append(DidYouMeanAnswers *d, String const &target) {
 	if (target.len == 0 || target == "_") {
 		return;
 	}
@@ -935,7 +935,7 @@ gb_internal void did_you_mean_append(DidYouMeanAnswers *d, String const &target)
 	dat.distance = levenstein_distance_case_insensitive(d->key, target);
 	array_add(&d->distances, dat);
 }
-gb_internal Slice<DistanceAndTarget> did_you_mean_results(DidYouMeanAnswers *d) {
+static Slice<DistanceAndTarget> did_you_mean_results(DidYouMeanAnswers *d) {
 	array_sort(d->distances, gb_isize_cmp(gb_offset_of(DistanceAndTarget, distance)));
 	isize count = 0;
 	for (isize i = 0; i < d->distances.count; i++) {

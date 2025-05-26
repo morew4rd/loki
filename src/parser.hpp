@@ -284,7 +284,7 @@ enum ProcCallingConvention : i32 {
 	ProcCC_ForeignBlockDefault = -1,
 };
 
-gb_global char const *proc_calling_convention_strings[ProcCC_MAX] = {
+static char const *proc_calling_convention_strings[ProcCC_MAX] = {
 	"",
 	"odin",
 	"contextless",
@@ -298,7 +298,7 @@ gb_global char const *proc_calling_convention_strings[ProcCC_MAX] = {
 	"sysv",
 };
 
-gb_internal ProcCallingConvention default_calling_convention(void) {
+static ProcCallingConvention default_calling_convention(void) {
 	return ProcCC_Odin;
 }
 
@@ -366,7 +366,7 @@ enum InlineAsmDialectKind : u8 {
 	InlineAsmDialect_COUNT,
 };
 
-gb_global char const *inline_asm_dialect_strings[InlineAsmDialect_COUNT] = {
+static char const *inline_asm_dialect_strings[InlineAsmDialect_COUNT] = {
 	"",
 	"att",
 	"intel",
@@ -380,7 +380,7 @@ enum UnionTypeKind : u8 {
 	UnionType_COUNT
 };
 
-gb_global char const *union_type_kind_strings[UnionType_COUNT] = {
+static char const *union_type_kind_strings[UnionType_COUNT] = {
 	"(normal)",
 	"#maybe",
 	"#no_nil",
@@ -800,7 +800,7 @@ enum AstKind : u16 {
 	Ast_COUNT,
 };
 
-gb_global String const ast_strings[] = {
+static String const ast_strings[] = {
 	{cast(u8 *)"invalid node", gb_size_of("invalid node")},
 #define AST_KIND(_kind_name_, name, ...) {cast(u8 *)name, gb_size_of(name)-1},
 	AST_KINDS
@@ -813,7 +813,7 @@ gb_global String const ast_strings[] = {
 #undef AST_KIND
 
 
-gb_global isize const ast_variant_sizes[] = {
+static isize const ast_variant_sizes[] = {
 	0,
 #define AST_KIND(_kind_name_, name, ...) gb_size_of(GB_JOIN2(Ast, _kind_name_)),
 	AST_KINDS
@@ -841,12 +841,12 @@ struct Ast {
 	AST_KINDS
 #undef AST_KIND
 	};
-	
-	
-	// NOTE(bill): I know I dislike methods but this is hopefully a temporary thing 
+
+
+	// NOTE(bill): I know I dislike methods but this is hopefully a temporary thing
 	// for refactoring purposes
 	gb_inline AstFile *file() const {
-		// NOTE(bill): This doesn't need to call get_ast_file_from_id which 
+		// NOTE(bill): This doesn't need to call get_ast_file_from_id which
 		return global_files[this->file_id];
 	}
 	gb_inline AstFile *thread_safe_file() const {
@@ -864,33 +864,33 @@ struct Ast {
 #endif
 
 
-gb_internal gb_inline bool is_ast_expr(Ast *node) {
+static gb_inline bool is_ast_expr(Ast *node) {
 	return gb_is_between(node->kind, Ast__ExprBegin+1, Ast__ExprEnd-1);
 }
-gb_internal gb_inline bool is_ast_stmt(Ast *node) {
+static gb_inline bool is_ast_stmt(Ast *node) {
 	return gb_is_between(node->kind, Ast__StmtBegin+1, Ast__StmtEnd-1);
 }
-gb_internal gb_inline bool is_ast_complex_stmt(Ast *node) {
+static gb_inline bool is_ast_complex_stmt(Ast *node) {
 	return gb_is_between(node->kind, Ast__ComplexStmtBegin+1, Ast__ComplexStmtEnd-1);
 }
-gb_internal gb_inline bool is_ast_decl(Ast *node) {
+static gb_inline bool is_ast_decl(Ast *node) {
 	return gb_is_between(node->kind, Ast__DeclBegin+1, Ast__DeclEnd-1);
 }
-gb_internal gb_inline bool is_ast_type(Ast *node) {
+static gb_inline bool is_ast_type(Ast *node) {
 	return gb_is_between(node->kind, Ast__TypeBegin+1, Ast__TypeEnd-1);
 }
-gb_internal gb_inline bool is_ast_when_stmt(Ast *node) {
+static gb_inline bool is_ast_when_stmt(Ast *node) {
 	return node->kind == Ast_WhenStmt;
 }
 
-gb_internal gb_inline gbAllocator ast_allocator(AstFile *f) {
+static gb_inline gbAllocator ast_allocator(AstFile *f) {
 	return permanent_allocator();
 }
 
-gb_internal Ast *alloc_ast_node(AstFile *f, AstKind kind);
+static Ast *alloc_ast_node(AstFile *f, AstKind kind);
 
-gb_internal gbString expr_to_string(Ast *expression);
-gb_internal bool allow_field_separator(AstFile *f);
+static gbString expr_to_string(Ast *expression);
+static bool allow_field_separator(AstFile *f);
 
 
-gb_internal void parse_enforce_tabs(AstFile *f);
+static void parse_enforce_tabs(AstFile *f);

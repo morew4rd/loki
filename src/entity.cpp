@@ -24,7 +24,7 @@ enum EntityKind {
 	Entity_Count,
 };
 
-gb_global String const entity_strings[] = {
+static String const entity_strings[] = {
 #define ENTITY_KIND(k) {cast(u8 *)#k, gb_size_of(#k)-1},
 	ENTITY_KINDS
 #undef ENTITY_KIND
@@ -75,13 +75,13 @@ enum EntityFlag : u64 {
 	EntityFlag_Init          = 1ull<<31,
 	EntityFlag_Subtype       = 1ull<<32,
 	EntityFlag_Fini          = 1ull<<33,
-	
+
 	EntityFlag_CustomLinkName = 1ull<<40,
 	EntityFlag_CustomLinkage_Internal = 1ull<<41,
 	EntityFlag_CustomLinkage_Strong   = 1ull<<42,
 	EntityFlag_CustomLinkage_Weak     = 1ull<<43,
 	EntityFlag_CustomLinkage_LinkOnce = 1ull<<44,
-	
+
 	EntityFlag_Require = 1ull<<50,
 	EntityFlag_ByPtr   = 1ull<<51, // enforce parameter is passed by pointer
 
@@ -117,7 +117,7 @@ struct ParameterValue {
 	};
 };
 
-gb_internal gb_inline bool has_parameter_value(ParameterValue const &param_value) {
+static gb_inline bool has_parameter_value(ParameterValue const &param_value) {
 	if (param_value.kind != ParameterValue_Invalid) {
 		return true;
 	}
@@ -150,7 +150,7 @@ struct TypeNameObjCMetadata {
 	Array<TypeNameObjCMetadataEntry> value_entries;
 };
 
-gb_internal TypeNameObjCMetadata *create_type_name_obj_c_metadata() {
+static TypeNameObjCMetadata *create_type_name_obj_c_metadata() {
 	TypeNameObjCMetadata *md = gb_alloc_item(permanent_allocator(), TypeNameObjCMetadata);
 	md->mutex = gb_alloc_item(permanent_allocator(), BlockingMutex);
 	array_init(&md->type_entries,  heap_allocator());
@@ -292,7 +292,7 @@ struct Entity {
 	};
 };
 
-gb_internal bool is_entity_kind_exported(EntityKind kind, bool allow_builtin = false) {
+static bool is_entity_kind_exported(EntityKind kind, bool allow_builtin = false) {
 	switch (kind) {
 	case Entity_Builtin:
 		return allow_builtin;
@@ -304,7 +304,7 @@ gb_internal bool is_entity_kind_exported(EntityKind kind, bool allow_builtin = f
 	return true;
 }
 
-gb_internal bool is_entity_exported(Entity *e, bool allow_builtin = false) {
+static bool is_entity_exported(Entity *e, bool allow_builtin = false) {
 	GB_ASSERT(e != nullptr);
 	if (!is_entity_kind_exported(e->kind, allow_builtin)) {
 		return false;
@@ -325,7 +325,7 @@ gb_internal bool is_entity_exported(Entity *e, bool allow_builtin = false) {
 	return true;
 }
 
-gb_internal bool entity_has_deferred_procedure(Entity *e) {
+static bool entity_has_deferred_procedure(Entity *e) {
 	GB_ASSERT(e != nullptr);
 	if (e->kind == Entity_Procedure) {
 		return e->Procedure.deferred_procedure.entity != nullptr;
@@ -334,9 +334,9 @@ gb_internal bool entity_has_deferred_procedure(Entity *e) {
 }
 
 
-gb_global std::atomic<u64> global_entity_id;
+static std::atomic<u64> global_entity_id;
 
-gb_internal Entity *alloc_entity(EntityKind kind, Scope *scope, Token token, Type *type) {
+static Entity *alloc_entity(EntityKind kind, Scope *scope, Token token, Type *type) {
 	gbAllocator a = permanent_allocator();
 	Entity *entity = gb_alloc_item(a, Entity);
 	entity->kind   = kind;
@@ -351,13 +351,13 @@ gb_internal Entity *alloc_entity(EntityKind kind, Scope *scope, Token token, Typ
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_variable(Scope *scope, Token token, Type *type, EntityState state = EntityState_Unresolved) {
+static Entity *alloc_entity_variable(Scope *scope, Token token, Type *type, EntityState state = EntityState_Unresolved) {
 	Entity *entity = alloc_entity(Entity_Variable, scope, token, type);
 	entity->state = state;
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_using_variable(Entity *parent, Token token, Type *type, Ast *using_expr) {
+static Entity *alloc_entity_using_variable(Entity *parent, Token token, Type *type, Ast *using_expr) {
 	GB_ASSERT(parent != nullptr);
 	token.pos = parent->token.pos;
 	Entity *entity = alloc_entity(Entity_Variable, parent->scope, token, type);
@@ -371,19 +371,19 @@ gb_internal Entity *alloc_entity_using_variable(Entity *parent, Token token, Typ
 }
 
 
-gb_internal Entity *alloc_entity_constant(Scope *scope, Token token, Type *type, ExactValue value) {
+static Entity *alloc_entity_constant(Scope *scope, Token token, Type *type, ExactValue value) {
 	Entity *entity = alloc_entity(Entity_Constant, scope, token, type);
 	entity->Constant.value = value;
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_type_name(Scope *scope, Token token, Type *type, EntityState state = EntityState_Unresolved) {
+static Entity *alloc_entity_type_name(Scope *scope, Token token, Type *type, EntityState state = EntityState_Unresolved) {
 	Entity *entity = alloc_entity(Entity_TypeName, scope, token, type);
 	entity->state = state;
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_param(Scope *scope, Token token, Type *type, bool is_using, bool is_value) {
+static Entity *alloc_entity_param(Scope *scope, Token token, Type *type, bool is_using, bool is_value) {
 	Entity *entity = alloc_entity_variable(scope, token, type);
 	entity->flags |= EntityFlag_Used;
 	entity->flags |= EntityFlag_Param;
@@ -394,7 +394,7 @@ gb_internal Entity *alloc_entity_param(Scope *scope, Token token, Type *type, bo
 }
 
 
-gb_internal Entity *alloc_entity_const_param(Scope *scope, Token token, Type *type, ExactValue value, bool poly_const) {
+static Entity *alloc_entity_const_param(Scope *scope, Token token, Type *type, ExactValue value, bool poly_const) {
 	Entity *entity = alloc_entity_constant(scope, token, type, value);
 	entity->flags |= EntityFlag_Used;
 	if (poly_const) entity->flags |= EntityFlag_PolyConst;
@@ -403,7 +403,7 @@ gb_internal Entity *alloc_entity_const_param(Scope *scope, Token token, Type *ty
 }
 
 
-gb_internal Entity *alloc_entity_field(Scope *scope, Token token, Type *type, bool is_using, i32 field_index, EntityState state = EntityState_Unresolved) {
+static Entity *alloc_entity_field(Scope *scope, Token token, Type *type, bool is_using, i32 field_index, EntityState state = EntityState_Unresolved) {
 	Entity *entity = alloc_entity_variable(scope, token, type);
 	entity->Variable.field_index = field_index;
 	if (is_using) entity->flags |= EntityFlag_Using;
@@ -412,7 +412,7 @@ gb_internal Entity *alloc_entity_field(Scope *scope, Token token, Type *type, bo
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_array_elem(Scope *scope, Token token, Type *type, i32 field_index) {
+static Entity *alloc_entity_array_elem(Scope *scope, Token token, Type *type, i32 field_index) {
 	Entity *entity = alloc_entity_variable(scope, token, type);
 	entity->Variable.field_index = field_index;
 	entity->flags |= EntityFlag_Field;
@@ -421,18 +421,18 @@ gb_internal Entity *alloc_entity_array_elem(Scope *scope, Token token, Type *typ
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_procedure(Scope *scope, Token token, Type *signature_type, u64 tags=0) {
+static Entity *alloc_entity_procedure(Scope *scope, Token token, Type *signature_type, u64 tags=0) {
 	Entity *entity = alloc_entity(Entity_Procedure, scope, token, signature_type);
 	entity->Procedure.tags = tags;
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_proc_group(Scope *scope, Token token, Type *type) {
+static Entity *alloc_entity_proc_group(Scope *scope, Token token, Type *type) {
 	Entity *entity = alloc_entity(Entity_ProcGroup, scope, token, type);
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_import_name(Scope *scope, Token token, Type *type,
+static Entity *alloc_entity_import_name(Scope *scope, Token token, Type *type,
                                  String path, String name, Scope *import_scope) {
 	Entity *entity = alloc_entity(Entity_ImportName, scope, token, type);
 	entity->ImportName.path = path;
@@ -442,7 +442,7 @@ gb_internal Entity *alloc_entity_import_name(Scope *scope, Token token, Type *ty
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_library_name(Scope *scope, Token token, Type *type,
+static Entity *alloc_entity_library_name(Scope *scope, Token token, Type *type,
                                   Slice<String> paths, String name) {
 	Entity *entity = alloc_entity(Entity_LibraryName, scope, token, type);
 	entity->LibraryName.paths = paths;
@@ -455,12 +455,12 @@ gb_internal Entity *alloc_entity_library_name(Scope *scope, Token token, Type *t
 
 
 
-gb_internal Entity *alloc_entity_nil(String name, Type *type) {
+static Entity *alloc_entity_nil(String name, Type *type) {
 	Entity *entity = alloc_entity(Entity_Nil, nullptr, make_token_ident(name), type);
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_label(Scope *scope, Token token, Type *type, Ast *node, Ast *parent) {
+static Entity *alloc_entity_label(Scope *scope, Token token, Type *type, Ast *node, Ast *parent) {
 	Entity *entity = alloc_entity(Entity_Label, scope, token, type);
 	entity->Label.node = node;
 	entity->Label.parent = parent;
@@ -468,15 +468,15 @@ gb_internal Entity *alloc_entity_label(Scope *scope, Token token, Type *type, As
 	return entity;
 }
 
-gb_internal Entity *alloc_entity_dummy_variable(Scope *scope, Token token) {
+static Entity *alloc_entity_dummy_variable(Scope *scope, Token token) {
 	token.string = str_lit("_");
 	return alloc_entity_variable(scope, token, nullptr);
 }
 
 
-gb_internal Entity *entity_from_expr(Ast *expr);
+static Entity *entity_from_expr(Ast *expr);
 
-gb_internal Entity *strip_entity_wrapping(Entity *e) {
+static Entity *strip_entity_wrapping(Entity *e) {
 	if (e == nullptr) {
 		return nullptr;
 	}
@@ -489,13 +489,13 @@ gb_internal Entity *strip_entity_wrapping(Entity *e) {
 	return e;
 }
 
-gb_internal Entity *strip_entity_wrapping(Ast *expr) {
+static Entity *strip_entity_wrapping(Ast *expr) {
 	Entity *e = entity_from_expr(expr);
 	return strip_entity_wrapping(e);
 }
 
 
-gb_internal bool is_entity_local_variable(Entity *e) {
+static bool is_entity_local_variable(Entity *e) {
 	if (e == nullptr) {
 		return false;
 	}

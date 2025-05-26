@@ -1,4 +1,4 @@
-gb_global BlockingMutex string_buffer_mutex = {};
+static BlockingMutex string_buffer_mutex = {};
 
 // NOTE(bill): Used for UTF-8 strings
 struct String {
@@ -35,7 +35,7 @@ struct String16 {
 };
 
 
-gb_internal gb_inline String make_string(u8 const *text, isize len) {
+static gb_inline String make_string(u8 const *text, isize len) {
 	String s;
 	s.text = cast(u8 *)text;
 	if (len < 0) {
@@ -46,14 +46,14 @@ gb_internal gb_inline String make_string(u8 const *text, isize len) {
 }
 
 
-gb_internal gb_inline String16 make_string16(wchar_t const *text, isize len) {
+static gb_inline String16 make_string16(wchar_t const *text, isize len) {
 	String16 s;
 	s.text = cast(wchar_t *)text;
 	s.len = len;
 	return s;
 }
 
-gb_internal isize string16_len(wchar_t const *s) {
+static isize string16_len(wchar_t const *s) {
 	if (s == nullptr) {
 		return 0;
 	}
@@ -65,15 +65,15 @@ gb_internal isize string16_len(wchar_t const *s) {
 }
 
 
-gb_internal gb_inline String make_string_c(char const *text) {
+static gb_inline String make_string_c(char const *text) {
 	return make_string(cast(u8 *)cast(void *)text, gb_strlen(text));
 }
 
-gb_internal gb_inline String16 make_string16_c(wchar_t const *text) {
+static gb_inline String16 make_string16_c(wchar_t const *text) {
 	return make_string16(text, string16_len(text));
 }
 
-gb_internal String substring(String const &s, isize lo, isize hi) {
+static String substring(String const &s, isize lo, isize hi) {
 	isize max = s.len;
 	GB_ASSERT_MSG(lo <= hi && hi <= max, "%td..%td..%td", lo, hi, max);
 
@@ -81,14 +81,14 @@ gb_internal String substring(String const &s, isize lo, isize hi) {
 }
 
 
-gb_internal char *alloc_cstring(gbAllocator a, String s) {
+static char *alloc_cstring(gbAllocator a, String s) {
 	char *c_str = gb_alloc_array(a, char, s.len+1);
 	gb_memmove(c_str, s.text, s.len);
 	c_str[s.len] = '\0';
 	return c_str;
 }
 
-gb_internal wchar_t *alloc_wstring(gbAllocator a, String16 s) {
+static wchar_t *alloc_wstring(gbAllocator a, String16 s) {
 	wchar_t *c_str = gb_alloc_array(a, wchar_t, s.len+1);
 	gb_memmove(c_str, s.text, s.len*2);
 	c_str[s.len] = '\0';
@@ -96,7 +96,7 @@ gb_internal wchar_t *alloc_wstring(gbAllocator a, String16 s) {
 }
 
 
-gb_internal gb_inline bool str_eq_ignore_case(String const &a, String const &b) {
+static gb_inline bool str_eq_ignore_case(String const &a, String const &b) {
 	if (a.len == b.len) {
 		for (isize i = 0; i < a.len; i++) {
 			char x = cast(char)a[i];
@@ -111,7 +111,7 @@ gb_internal gb_inline bool str_eq_ignore_case(String const &a, String const &b) 
 }
 
 template <isize N>
-gb_internal gb_inline bool str_eq_ignore_case(String const &a, char const (&b_)[N]) {
+static gb_inline bool str_eq_ignore_case(String const &a, char const (&b_)[N]) {
 	if (a.len != N-1) {
 		return false;
 	}
@@ -120,13 +120,13 @@ gb_internal gb_inline bool str_eq_ignore_case(String const &a, char const (&b_)[
 }
 
 
-gb_internal void string_to_lower(String *s) {
+static void string_to_lower(String *s) {
 	for (isize i = 0; i < s->len; i++) {
 		s->text[i] = gb_char_to_lower(s->text[i]);
 	}
 }
 
-gb_internal int string_compare(String const &a, String const &b) {
+static int string_compare(String const &a, String const &b) {
 	if (a.text == b.text) {
 		return cast(int)(a.len - b.len);
 	}
@@ -145,7 +145,7 @@ gb_internal int string_compare(String const &a, String const &b) {
 	return res;
 }
 
-gb_internal isize string_index_byte(String const &s, u8 x) {
+static isize string_index_byte(String const &s, u8 x) {
 	for (isize i = 0; i < s.len; i++) {
 		if (s.text[i] == x) {
 			return i;
@@ -154,35 +154,35 @@ gb_internal isize string_index_byte(String const &s, u8 x) {
 	return -1;
 }
 
-gb_internal gb_inline bool str_eq(String const &a, String const &b) {
+static gb_inline bool str_eq(String const &a, String const &b) {
 	if (a.len != b.len) return false;
 	if (a.len == 0) return true;
 	return memcmp(a.text, b.text, a.len) == 0;
 }
-gb_internal gb_inline bool str_ne(String const &a, String const &b) { return !str_eq(a, b);                }
-gb_internal gb_inline bool str_lt(String const &a, String const &b) { return string_compare(a, b) < 0;     }
-gb_internal gb_inline bool str_gt(String const &a, String const &b) { return string_compare(a, b) > 0;     }
-gb_internal gb_inline bool str_le(String const &a, String const &b) { return string_compare(a, b) <= 0;    }
-gb_internal gb_inline bool str_ge(String const &a, String const &b) { return string_compare(a, b) >= 0;    }
+static gb_inline bool str_ne(String const &a, String const &b) { return !str_eq(a, b);                }
+static gb_inline bool str_lt(String const &a, String const &b) { return string_compare(a, b) < 0;     }
+static gb_inline bool str_gt(String const &a, String const &b) { return string_compare(a, b) > 0;     }
+static gb_inline bool str_le(String const &a, String const &b) { return string_compare(a, b) <= 0;    }
+static gb_inline bool str_ge(String const &a, String const &b) { return string_compare(a, b) >= 0;    }
 
-gb_internal gb_inline bool operator == (String const &a, String const &b) { return str_eq(a, b); }
-gb_internal gb_inline bool operator != (String const &a, String const &b) { return str_ne(a, b); }
-gb_internal gb_inline bool operator <  (String const &a, String const &b) { return str_lt(a, b); }
-gb_internal gb_inline bool operator >  (String const &a, String const &b) { return str_gt(a, b); }
-gb_internal gb_inline bool operator <= (String const &a, String const &b) { return str_le(a, b); }
-gb_internal gb_inline bool operator >= (String const &a, String const &b) { return str_ge(a, b); }
+static gb_inline bool operator == (String const &a, String const &b) { return str_eq(a, b); }
+static gb_inline bool operator != (String const &a, String const &b) { return str_ne(a, b); }
+static gb_inline bool operator <  (String const &a, String const &b) { return str_lt(a, b); }
+static gb_inline bool operator >  (String const &a, String const &b) { return str_gt(a, b); }
+static gb_inline bool operator <= (String const &a, String const &b) { return str_le(a, b); }
+static gb_inline bool operator >= (String const &a, String const &b) { return str_ge(a, b); }
 
-template <isize N> gb_internal bool operator == (String const &a, char const (&b)[N]) { return str_eq(a, make_string(cast(u8 *)b, N-1)); }
-template <isize N> gb_internal bool operator != (String const &a, char const (&b)[N]) { return str_ne(a, make_string(cast(u8 *)b, N-1)); }
-template <isize N> gb_internal bool operator <  (String const &a, char const (&b)[N]) { return str_lt(a, make_string(cast(u8 *)b, N-1)); }
-template <isize N> gb_internal bool operator >  (String const &a, char const (&b)[N]) { return str_gt(a, make_string(cast(u8 *)b, N-1)); }
-template <isize N> gb_internal bool operator <= (String const &a, char const (&b)[N]) { return str_le(a, make_string(cast(u8 *)b, N-1)); }
-template <isize N> gb_internal bool operator >= (String const &a, char const (&b)[N]) { return str_ge(a, make_string(cast(u8 *)b, N-1)); }
+template <isize N> static bool operator == (String const &a, char const (&b)[N]) { return str_eq(a, make_string(cast(u8 *)b, N-1)); }
+template <isize N> static bool operator != (String const &a, char const (&b)[N]) { return str_ne(a, make_string(cast(u8 *)b, N-1)); }
+template <isize N> static bool operator <  (String const &a, char const (&b)[N]) { return str_lt(a, make_string(cast(u8 *)b, N-1)); }
+template <isize N> static bool operator >  (String const &a, char const (&b)[N]) { return str_gt(a, make_string(cast(u8 *)b, N-1)); }
+template <isize N> static bool operator <= (String const &a, char const (&b)[N]) { return str_le(a, make_string(cast(u8 *)b, N-1)); }
+template <isize N> static bool operator >= (String const &a, char const (&b)[N]) { return str_ge(a, make_string(cast(u8 *)b, N-1)); }
 
 template <> bool operator == (String const &a, char const (&b)[1]) { return a.len == 0; }
 template <> bool operator != (String const &a, char const (&b)[1]) { return a.len != 0; }
 
-gb_internal gb_inline bool string_starts_with(String const &s, String const &prefix) {
+static gb_inline bool string_starts_with(String const &s, String const &prefix) {
 	if (prefix.len > s.len) {
 		return false;
 	}
@@ -190,7 +190,7 @@ gb_internal gb_inline bool string_starts_with(String const &s, String const &pre
 	return substring(s, 0, prefix.len) == prefix;
 }
 
-gb_internal gb_inline bool string_ends_with(String const &s, String const &suffix) {
+static gb_inline bool string_ends_with(String const &s, String const &suffix) {
 	if (suffix.len > s.len) {
 		return false;
 	}
@@ -198,7 +198,7 @@ gb_internal gb_inline bool string_ends_with(String const &s, String const &suffi
 	return substring(s, s.len-suffix.len, s.len) == suffix;
 }
 
-gb_internal gb_inline bool string_starts_with(String const &s, u8 prefix) {
+static gb_inline bool string_starts_with(String const &s, u8 prefix) {
 	if (1 > s.len) {
 		return false;
 	}
@@ -207,7 +207,7 @@ gb_internal gb_inline bool string_starts_with(String const &s, u8 prefix) {
 }
 
 
-gb_internal gb_inline bool string_ends_with(String const &s, u8 suffix) {
+static gb_inline bool string_ends_with(String const &s, u8 suffix) {
 	if (1 > s.len) {
 		return false;
 	}
@@ -217,7 +217,7 @@ gb_internal gb_inline bool string_ends_with(String const &s, u8 suffix) {
 
 
 
-gb_internal gb_inline String string_trim_starts_with(String const &s, String const &prefix) {
+static gb_inline String string_trim_starts_with(String const &s, String const &prefix) {
 	if (string_starts_with(s, prefix)) {
 		return substring(s, prefix.len, s.len);
 	}
@@ -225,7 +225,7 @@ gb_internal gb_inline String string_trim_starts_with(String const &s, String con
 }
 
 
-gb_internal String string_split_iterator(String_Iterator *it, const char sep) {
+static String string_split_iterator(String_Iterator *it, const char sep) {
 	isize start = it->pos;
 	isize end   = it->str.len;
 
@@ -245,12 +245,12 @@ gb_internal String string_split_iterator(String_Iterator *it, const char sep) {
 	return substring(it->str, start, end);
 }
 
-gb_internal gb_inline bool is_separator(u8 const &ch) {
+static gb_inline bool is_separator(u8 const &ch) {
 	return (ch == '/' || ch == '\\');
 }
 
 
-gb_internal gb_inline isize string_extension_position(String const &str) {
+static gb_inline isize string_extension_position(String const &str) {
 	isize dot_pos = -1;
 	isize i = str.len;
 	while (i --> 0) {
@@ -265,7 +265,7 @@ gb_internal gb_inline isize string_extension_position(String const &str) {
 	return dot_pos;
 }
 
-gb_internal String path_extension(String const &str, bool include_dot = true) {
+static String path_extension(String const &str, bool include_dot = true) {
 	isize pos = string_extension_position(str);
 	if (pos < 0) {
 		return make_string(nullptr, 0);
@@ -274,7 +274,7 @@ gb_internal String path_extension(String const &str, bool include_dot = true) {
 }
 
 
-gb_internal String path_remove_extension(String const &str) {
+static String path_remove_extension(String const &str) {
 	isize pos = string_extension_position(str);
 	if (pos < 0) {
 		return str;
@@ -282,7 +282,7 @@ gb_internal String path_remove_extension(String const &str) {
 	return substring(str, 0, pos);
 }
 
-gb_internal String string_trim_whitespace(String str) {
+static String string_trim_whitespace(String str) {
 	while (str.len > 0 && rune_is_whitespace(str[str.len-1])) {
 		str.len--;
 	}
@@ -298,7 +298,7 @@ gb_internal String string_trim_whitespace(String str) {
 
 	return str;
 }
-gb_internal String string_trim_trailing_whitespace(String str) {
+static String string_trim_trailing_whitespace(String str) {
 	while (str.len > 0)  {
 		u8 c = str[str.len-1];
 		if (rune_is_whitespace(c) || c == 0) {
@@ -310,7 +310,7 @@ gb_internal String string_trim_trailing_whitespace(String str) {
 	return str;
 }
 
-gb_internal String split_lines_first_line_from_array(Array<u8> const &array, gbAllocator allocator) {
+static String split_lines_first_line_from_array(Array<u8> const &array, gbAllocator allocator) {
 	String_Iterator it = {{array.data, array.count}, 0};
 
 	String line = string_split_iterator(&it, '\n');
@@ -318,7 +318,7 @@ gb_internal String split_lines_first_line_from_array(Array<u8> const &array, gbA
 	return line;
 }
 
-gb_internal Array<String> split_lines_from_array(Array<u8> const &array, gbAllocator allocator) {
+static Array<String> split_lines_from_array(Array<u8> const &array, gbAllocator allocator) {
 	Array<String> lines = {};
 	lines.allocator = allocator;
 
@@ -338,7 +338,7 @@ gb_internal Array<String> split_lines_from_array(Array<u8> const &array, gbAlloc
 
 enum : u32 { PRIME_RABIN_KARP = 16777619u };
 
-gb_internal u32 hash_str_rabin_karp(String const &s, u32 *pow_) {
+static u32 hash_str_rabin_karp(String const &s, u32 *pow_) {
 	u32 hash = 0;
 	u32 pow = 1;
 	for (isize i = 0; i < s.len; i++) {
@@ -357,7 +357,7 @@ gb_internal u32 hash_str_rabin_karp(String const &s, u32 *pow_) {
 }
 
 
-gb_internal isize string_index(String const &s, String const &substr) {
+static isize string_index(String const &s, String const &substr) {
 	isize n = substr.len;
 	if (n == 0) {
 		return 0;
@@ -399,7 +399,7 @@ struct StringPartition {
 	String tail;
 };
 
-gb_internal StringPartition string_partition(String const &str, String const &sep) {
+static StringPartition string_partition(String const &str, String const &sep) {
 	StringPartition res = {};
 	isize i = string_index(str, sep);
 	if (i < 0) {
@@ -413,7 +413,7 @@ gb_internal StringPartition string_partition(String const &str, String const &se
 	return res;
 }
 
-gb_internal bool string_contains_char(String const &s, u8 c) {
+static bool string_contains_char(String const &s, u8 c) {
 	isize i;
 	for (i = 0; i < s.len; i++) {
 		if (s[i] == c)
@@ -422,7 +422,7 @@ gb_internal bool string_contains_char(String const &s, u8 c) {
 	return false;
 }
 
-gb_internal bool string_contains_string(String const &haystack, String const &needle) {
+static bool string_contains_string(String const &haystack, String const &needle) {
 	if (needle.len == 0) return true;
 	if (needle.len > haystack.len) return false;
 
@@ -441,7 +441,7 @@ gb_internal bool string_contains_string(String const &haystack, String const &ne
 	return false;
 }
 
-gb_internal String filename_from_path(String s) {
+static String filename_from_path(String s) {
 	isize i = string_extension_position(s);
 	if (i >= 0) {
 		s = substring(s, 0, i);
@@ -460,7 +460,7 @@ gb_internal String filename_from_path(String s) {
 }
 
 
-gb_internal String filename_without_directory(String s) {
+static String filename_without_directory(String s) {
 	isize j = 0;
 	for (j = s.len-1; j >= 0; j--) {
 		if (is_separator(s[j])) {
@@ -470,7 +470,7 @@ gb_internal String filename_without_directory(String s) {
 	return substring(s, gb_max(j+1, 0), s.len);
 }
 
-gb_internal String concatenate_strings(gbAllocator a, String const &x, String const &y) {
+static String concatenate_strings(gbAllocator a, String const &x, String const &y) {
 	isize len = x.len+y.len;
 	u8 *data = gb_alloc_array(a, u8, len+1);
 	gb_memmove(data,       x.text, x.len);
@@ -478,7 +478,7 @@ gb_internal String concatenate_strings(gbAllocator a, String const &x, String co
 	data[len] = 0;
 	return make_string(data, len);
 }
-gb_internal String concatenate3_strings(gbAllocator a, String const &x, String const &y, String const &z) {
+static String concatenate3_strings(gbAllocator a, String const &x, String const &y, String const &z) {
 	isize len = x.len+y.len+z.len;
 	u8 *data = gb_alloc_array(a, u8, len+1);
 	gb_memmove(data,             x.text, x.len);
@@ -487,7 +487,7 @@ gb_internal String concatenate3_strings(gbAllocator a, String const &x, String c
 	data[len] = 0;
 	return make_string(data, len);
 }
-gb_internal String concatenate4_strings(gbAllocator a, String const &x, String const &y, String const &z, String const &w) {
+static String concatenate4_strings(gbAllocator a, String const &x, String const &y, String const &z, String const &w) {
 	isize len = x.len+y.len+z.len+w.len;
 	u8 *data = gb_alloc_array(a, u8, len+1);
 	gb_memmove(data,                   x.text, x.len);
@@ -499,7 +499,7 @@ gb_internal String concatenate4_strings(gbAllocator a, String const &x, String c
 }
 
 #if defined(GB_SYSTEM_WINDOWS)
-gb_internal String escape_char(gbAllocator a, String s, char cte) {
+static String escape_char(gbAllocator a, String s, char cte) {
 	isize buf_len = s.len;
 	isize cte_count = 0;
 	for (isize j = 0; j < s.len; j++) {
@@ -524,7 +524,7 @@ gb_internal String escape_char(gbAllocator a, String s, char cte) {
 }
 #endif
 
-gb_internal String string_join_and_quote(gbAllocator a, Array<String> strings) {
+static String string_join_and_quote(gbAllocator a, Array<String> strings) {
 	if (!strings.count) {
 		return make_string(nullptr, 0);
 	}
@@ -549,14 +549,14 @@ gb_internal String string_join_and_quote(gbAllocator a, Array<String> strings) {
 	return make_string(cast(u8 *) s, gb_string_length(s));
 }
 
-gb_internal String copy_string(gbAllocator a, String const &s) {
+static String copy_string(gbAllocator a, String const &s) {
 	u8 *data = gb_alloc_array(a, u8, s.len+1);
 	gb_memmove(data, s.text, s.len);
 	data[s.len] = 0;
 	return make_string(data, s.len);
 }
 
-gb_internal String normalize_path(gbAllocator a, String const &path, String const &sep) {
+static String normalize_path(gbAllocator a, String const &path, String const &sep) {
 	String s;
 	if (sep.len < 1) {
 		return path;
@@ -579,17 +579,17 @@ gb_internal String normalize_path(gbAllocator a, String const &path, String cons
 
 
 #if defined(GB_SYSTEM_WINDOWS)
-	gb_internal int convert_multibyte_to_widechar(char const *multibyte_input, int input_length, wchar_t *output, int output_size) {
+	static int convert_multibyte_to_widechar(char const *multibyte_input, int input_length, wchar_t *output, int output_size) {
 		return MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, multibyte_input, input_length, output, output_size);
 	}
-	gb_internal int convert_widechar_to_multibyte(wchar_t const *widechar_input, int input_length, char *output, int output_size) {
+	static int convert_widechar_to_multibyte(wchar_t const *widechar_input, int input_length, char *output, int output_size) {
 		return WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, widechar_input, input_length, output, output_size, nullptr, nullptr);
 	}
 #elif defined(GB_SYSTEM_UNIX) || defined(GB_SYSTEM_OSX)
 
 	#include <iconv.h>
 
-	gb_internal int convert_multibyte_to_widechar(char const *multibyte_input, usize input_length, wchar_t *output, usize output_size) {
+	static int convert_multibyte_to_widechar(char const *multibyte_input, usize input_length, wchar_t *output, usize output_size) {
 		iconv_t conv = iconv_open("WCHAR_T", "UTF-8");
 		size_t result = iconv(conv, cast(char **)&multibyte_input, &input_length, cast(char **)&output, &output_size);
 		iconv_close(conv);
@@ -597,7 +597,7 @@ gb_internal String normalize_path(gbAllocator a, String const &path, String cons
 		return cast(int)result;
 	}
 
-	gb_internal int convert_widechar_to_multibyte(wchar_t const *widechar_input, usize input_length, char* output, usize output_size) {
+	static int convert_widechar_to_multibyte(wchar_t const *widechar_input, usize input_length, char* output, usize output_size) {
 		iconv_t conv = iconv_open("UTF-8", "WCHAR_T");
 		size_t result = iconv(conv, cast(char**) &widechar_input, &input_length, cast(char **)&output, &output_size);
 		iconv_close(conv);
@@ -612,7 +612,7 @@ gb_internal String normalize_path(gbAllocator a, String const &path, String cons
 
 
 // TODO(bill): Make this non-windows specific
-gb_internal String16 string_to_string16(gbAllocator a, String s) {
+static String16 string_to_string16(gbAllocator a, String s) {
 	int len, len1;
 	wchar_t *text;
 
@@ -638,7 +638,7 @@ gb_internal String16 string_to_string16(gbAllocator a, String s) {
 }
 
 
-gb_internal String string16_to_string(gbAllocator a, String16 s) {
+static String string16_to_string(gbAllocator a, String16 s) {
 	int len, len1;
 	u8 *text;
 
@@ -667,7 +667,7 @@ gb_internal String string16_to_string(gbAllocator a, String16 s) {
 
 
 
-gb_internal String temporary_directory(gbAllocator allocator) {
+static String temporary_directory(gbAllocator allocator) {
 #if defined(GB_SYSTEM_WINDOWS)
 	DWORD n = GetTempPathW(0, nullptr);
 	if (n == 0) {
@@ -704,7 +704,7 @@ gb_internal String temporary_directory(gbAllocator allocator) {
 
 
 
-gb_internal bool is_printable(Rune r) {
+static bool is_printable(Rune r) {
 	if (r <= 0xff) {
 		if (0x20 <= r && r <= 0x7e) {
 			return true;
@@ -717,9 +717,9 @@ gb_internal bool is_printable(Rune r) {
 	return false;
 }
 
-gb_global char const lower_hex[] = "0123456789abcdef";
+static char const lower_hex[] = "0123456789abcdef";
 
-gb_internal String quote_to_ascii(gbAllocator a, String str, u8 quote='"') {
+static String quote_to_ascii(gbAllocator a, String str, u8 quote='"') {
 	u8 *s = str.text;
 	isize n = str.len;
 	auto buf = array_make<u8>(a, 0, n);
@@ -794,7 +794,7 @@ gb_internal String quote_to_ascii(gbAllocator a, String str, u8 quote='"') {
 
 
 
-gb_internal bool unquote_char(String s, u8 quote, Rune *rune, bool *multiple_bytes, String *tail_string) {
+static bool unquote_char(String s, u8 quote, Rune *rune, bool *multiple_bytes, String *tail_string) {
 	u8 c;
 
 	if (s[0] == quote &&
@@ -903,7 +903,7 @@ gb_internal bool unquote_char(String s, u8 quote, Rune *rune, bool *multiple_byt
 }
 
 
-gb_internal String strip_carriage_return(gbAllocator a, String s) {
+static String strip_carriage_return(gbAllocator a, String s) {
 	isize buf_len = s.len;
 	u8 *buf = gb_alloc_array(a, u8, buf_len);
 	isize i = 0;
@@ -921,7 +921,7 @@ gb_internal String strip_carriage_return(gbAllocator a, String s) {
 // 0 == failure
 // 1 == original memory
 // 2 == new allocation
-gb_internal i32 unquote_string(gbAllocator a, String *s_, u8 quote=0, bool has_carriage_return=false) {
+static i32 unquote_string(gbAllocator a, String *s_, u8 quote=0, bool has_carriage_return=false) {
 	String s = *s_;
 	isize n = s.len;
 	if (quote == 0) {
@@ -1007,7 +1007,7 @@ gb_internal i32 unquote_string(gbAllocator a, String *s_, u8 quote=0, bool has_c
 
 
 
-gb_internal bool string_is_valid_identifier(String str) {
+static bool string_is_valid_identifier(String str) {
 	if (str.len <= 0) return false;
 
 	isize rune_count = 0;
