@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 struct LinkerData {
 	BlockingMutex foreign_mutex;
 	PtrSet<Entity *> foreign_libraries_set;

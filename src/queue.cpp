@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 template <typename T>
 struct MPSCNode {
 	std::atomic<MPSCNode<T> *> next;

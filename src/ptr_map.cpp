@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 #define PTR_MAP_ENABLE_MULTI_MAP 1
 
 typedef u32 MapIndex;

@@ -1,3 +1,4 @@
+#include "gb/gb.h"
 #include "libtommath/tommath.h"
 
 #if 0

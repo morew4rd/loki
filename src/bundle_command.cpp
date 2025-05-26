@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 i32 bundle_android(String init_directory);
 
 i32 bundle(String init_directory) {

@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 #include <math.h>
 #include <stdlib.h>
 

@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 GB_STATIC_ASSERT(sizeof(MapIndex) == sizeof(u32));
 
 

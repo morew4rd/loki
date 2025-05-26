@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 #if defined(GB_SYSTEM_LINUX)
 #include <signal.h>
 #if __has_include(<valgrind/helgrind.h>)

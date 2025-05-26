@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 #define OdinDocHeader_MagicString "odindoc\0"
 
 template <typename T>

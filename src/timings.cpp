@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 struct TimeStamp {
 	u64    start;
 	u64    finish;

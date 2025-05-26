@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 enum ErrorValueKind : u32 {
 	ErrorValue_Error,
 	ErrorValue_Warning,

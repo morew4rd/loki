@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 static bool is_in_doc_writer(void);
 
 static GB_COMPARE_PROC(type_info_pair_cmp) {

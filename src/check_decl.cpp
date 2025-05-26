@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 static void check_stmt(CheckerContext *ctx, Ast *node, u32 flags);
 
 // NOTE(bill): 'content_name' is for debugging and error messages

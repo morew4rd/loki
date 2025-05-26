@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 template <typename T>
 struct PtrSet {
 	static_assert(TypeIsPointer<T>::value || TypeIsPtrSizedInteger<T>::value, "PtrSet::T must be a pointer");

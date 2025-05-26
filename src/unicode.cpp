@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 #if defined(GB_SYSTEM_WINDOWS)
 	#pragma warning(push)
 	#pragma warning(disable: 4245)

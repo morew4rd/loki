@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 /*
 	Gather and print platform and version info to help with reporting Odin bugs.
 */

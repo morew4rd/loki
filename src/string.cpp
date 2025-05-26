@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 static BlockingMutex string_buffer_mutex = {};
 
 // NOTE(bill): Used for UTF-8 strings

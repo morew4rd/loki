@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 enum CallArgumentError {
 	CallArgumentError_None,
 	CallArgumentError_NoneProcedureType,

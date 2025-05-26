@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 struct Scope;
 struct Checker;
 struct Type;

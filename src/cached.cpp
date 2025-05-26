@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 static GB_COMPARE_PROC(string_cmp) {
 	String const &x = *(String *)a;
 	String const &y = *(String *)b;

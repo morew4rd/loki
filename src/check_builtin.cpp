@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 typedef bool (BuiltinTypeIsProc)(Type *t);
 
 static BuiltinTypeIsProc *builtin_type_is_procs[BuiltinProc__type_simple_boolean_end - BuiltinProc__type_simple_boolean_begin] = {

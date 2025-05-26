@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 static Token ast_token(Ast *node) {
 	switch (node->kind) {
 	case Ast_Ident:          return node->Ident.token;

@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 // Generates Documentation
 
 static int print_entity_kind_ordering[Entity_Count] = {

@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 struct Ast;
 struct Scope;
 struct Entity;

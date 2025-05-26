@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 #define DEBUG_CHECK_ALL_PROCEDURES 1
 
 #include "entity.cpp"

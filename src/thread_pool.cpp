@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 // thread_pool.cpp
 
 struct WorkerTask;

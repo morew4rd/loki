@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 #define TOKEN_KINDS \
 	TOKEN_KIND(Token_Invalid, "Invalid"), \
 	TOKEN_KIND(Token_EOF,     "EOF"), \

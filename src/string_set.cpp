@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 struct StringSetEntry {
 	u32      hash;
 	MapIndex next;

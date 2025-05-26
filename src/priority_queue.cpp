@@ -1,3 +1,5 @@
+#include "gb/gb.h"
+
 template <typename T>
 struct PriorityQueue {
 	Array<T> queue;

@@ -16,9 +16,9 @@
 
 #include <string.h>
 
-#define GB_WINDOWS_H_INCLUDED
-#define GB_IMPLEMENTATION
 #include "gb/gb.h"
+
+#include "gb/gb.c" // TODO: remove when common.h is made
 
 #include <wchar.h>
 #include <stdio.h>
