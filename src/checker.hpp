@@ -1,3 +1,6 @@
+#ifndef LK_INCLUDE_CHECKER_HPP
+#define LK_INCLUDE_CHECKER_HPP
+
 // checker.hpp
 
 struct Type;
@@ -651,3 +654,5 @@ static GenTypesData *ensure_polymorphic_record_entity_has_gen_types(CheckerConte
 
 
 static void init_map_internal_types(Type *type);
+
+#endif // LK_INCLUDE_CHECKER_HPP

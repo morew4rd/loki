@@ -1,5 +1,6 @@
 #include "gb/gb.h"
 
+#include "parser.hpp"
 #include "parser_pos.cpp"
 
 static bool in_vet_packages(AstFile *file) {

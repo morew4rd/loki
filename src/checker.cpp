@@ -1,4 +1,6 @@
 #include "gb/gb.h"
+#include "checker.hpp"
+#include "parser.hpp"
 
 #define DEBUG_CHECK_ALL_PROCEDURES 1
 

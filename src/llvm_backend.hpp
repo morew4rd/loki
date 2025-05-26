@@ -1,3 +1,6 @@
+#ifndef LK_INCLUDE_LLVM_BACKEND_HPP
+#define LK_INCLUDE_LLVM_BACKEND_HPP
+
 #if defined(GB_SYSTEM_WINDOWS)
 #include <llvm-c/Config/llvm-config.h>
 #else
@@ -773,3 +776,5 @@ static char const *llvm_linkage_strings[] = {
 #define ODIN_METADATA_IS_PACKED str_lit("odin-is-packed")
 #define ODIN_METADATA_MIN_ALIGN str_lit("odin-min-align")
 #define ODIN_METADATA_MAX_ALIGN str_lit("odin-max-align")
+
+#endif // LK_INCLUDE_LLVM_BACKEND_HPP

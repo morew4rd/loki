@@ -1,4 +1,5 @@
 #include "gb/gb.h"
+#include "name_canonicalization.hpp"
 
 static bool is_in_doc_writer(void);
 

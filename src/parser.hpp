@@ -1,3 +1,6 @@
+#ifndef LK_INCLUDE_PARSER_HPP
+#define LK_INCLUDE_PARSER_HPP
+
 struct Ast;
 struct Scope;
 struct Type;
@@ -894,3 +897,5 @@ static bool allow_field_separator(AstFile *f);
 
 
 static void parse_enforce_tabs(AstFile *f);
+
+#endif // LK_INCLUDE_PARSER_HPP

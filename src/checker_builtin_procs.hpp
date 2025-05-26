@@ -1,3 +1,6 @@
+#ifndef LK_INCLUDE_CHECKER_BUILTIN_PROCS_HPP
+#define LK_INCLUDE_CHECKER_BUILTIN_PROCS_HPP
+
 // checker_builtin_procs.hpp
 
 enum BuiltinProcId {
@@ -706,3 +709,5 @@ static BuiltinProc builtin_procs[BuiltinProc_COUNT] = {
 
 	{STR_LIT("valgrind_client_request"), 7, false, Expr_Expr, BuiltinProcPkg_intrinsics},
 };
+
+#endif // LK_INCLUDE_CHECKER_BUILTIN_PROCS_HPP

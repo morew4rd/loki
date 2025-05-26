@@ -1,3 +1,6 @@
+#ifndef LK_INCLUDE_NAME_CANONICALIZATION_HPP
+#define LK_INCLUDE_NAME_CANONICALIZATION_HPP
+
 /*
 	General Rules for canonical name mangling
 
@@ -126,3 +129,5 @@ static gb_inline V &map_must_get(PtrMap<u64, V> *h, Type *key) {
 	GB_ASSERT(ptr != nullptr);
 	return *ptr;
 }
+
+#endif // LK_INCLUDE_NAME_CANONICALIZATION_HPP
