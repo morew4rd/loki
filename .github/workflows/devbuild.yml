@@ -1,9 +1,15 @@
-name:  Nightly
+# name:  Nightly
 
+# on:
+#   workflow_dispatch:
+#   schedule:
+#     - cron: 0 20 * * *
+
+name: devbuild
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: 0 20 * * *
+  push:
+    tags:
+      - devbuild
 
 jobs:
   build_windows:

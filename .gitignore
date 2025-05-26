@@ -296,3 +296,7 @@ build.sh
 *.rdi
 tests/issues/build/*
 misc/featuregen/featuregen
+
+
+# morew4rd
+/_b*

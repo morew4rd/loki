@@ -1,5 +1,11 @@
-name: CI
-on: [push, pull_request, workflow_dispatch]
+# name: CI
+# on: [push, pull_request, workflow_dispatch]
+
+name: devtest
+on:
+  push:
+    tags:
+      - devtest
 
 jobs:
   build_netbsd:
