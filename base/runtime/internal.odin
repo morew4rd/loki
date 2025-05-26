@@ -8,10 +8,10 @@ IS_WASM :: ODIN_ARCH == .wasm32 || ODIN_ARCH == .wasm64p32
 
 @(private)
 RUNTIME_LINKAGE :: "strong" when (
-	ODIN_USE_SEPARATE_MODULES || 
+	ODIN_USE_SEPARATE_MODULES ||
 	ODIN_BUILD_MODE == .Dynamic ||
 	!ODIN_NO_CRT) else "internal"
-RUNTIME_REQUIRE :: false // !ODIN_TILDE
+RUNTIME_REQUIRE :: false
 
 @(private)
 __float16 :: f16 when __ODIN_LLVM_F16_SUPPORTED else u16
@@ -238,7 +238,7 @@ memory_equal :: proc "contextless" (x, y: rawptr, n: int) -> bool {
 		}
 	}
 	return true
-	
+
 /*
 
 	when size_of(uint) == 8 {
@@ -251,7 +251,7 @@ memory_equal :: proc "contextless" (x, y: rawptr, n: int) -> bool {
 				b = b[size_of(u64):]
 			}
 		}
-		
+
 		if length & 4 != 0 {
 			if intrinsics.unaligned_load((^u32)(a)) != intrinsics.unaligned_load((^u32)(b)) {
 				return false
@@ -259,7 +259,7 @@ memory_equal :: proc "contextless" (x, y: rawptr, n: int) -> bool {
 			a = a[size_of(u32):]
 			b = b[size_of(u32):]
 		}
-		
+
 		if length & 2 != 0 {
 			if intrinsics.unaligned_load((^u16)(a)) != intrinsics.unaligned_load((^u16)(b)) {
 				return false
@@ -267,9 +267,9 @@ memory_equal :: proc "contextless" (x, y: rawptr, n: int) -> bool {
 			a = a[size_of(u16):]
 			b = b[size_of(u16):]
 		}
-		
+
 		if length & 1 != 0 && a[0] != b[0] {
-			return false	
+			return false
 		}
 		return true
 	} else {
@@ -282,9 +282,9 @@ memory_equal :: proc "contextless" (x, y: rawptr, n: int) -> bool {
 				b = b[size_of(u32):]
 			}
 		}
-		
+
 		length &= 3
-		
+
 		if length != 0 {
 			for i in 0..<length {
 				if a[i] != b[i] {

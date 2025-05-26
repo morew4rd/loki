@@ -167,11 +167,6 @@ ODIN_SANITIZER_FLAGS            :: ODIN_SANITIZER_FLAGS
 ODIN_TEST                       :: ODIN_TEST
 
 /*
-	`true` if built using the experimental Tilde backend.
-*/
-ODIN_TILDE                      :: ODIN_TILDE
-
-/*
 	`true` by default, meaning each each package is built into its own object file, and then linked together.
 	`false` if the `-use-single-module` command line switch to force a unity build is provided.
 

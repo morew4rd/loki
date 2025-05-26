@@ -21,7 +21,7 @@ enum TargetOsKind : u16 {
 	TargetOs_openbsd,
 	TargetOs_netbsd,
 	TargetOs_haiku,
-	
+
 	TargetOs_wasi,
 	TargetOs_js,
 	TargetOs_orca,
@@ -214,7 +214,7 @@ enum CommandKind : u64 {
 	Command_doc             = 1<<3,
 	Command_version         = 1<<4,
 	Command_test            = 1<<5,
-	
+
 	Command_strip_semicolon = 1<<6,
 	Command_bug_report      = 1<<7,
 
@@ -522,8 +522,6 @@ struct BuildContext {
 	bool   disable_red_zone;
 
 	isize max_error_count;
-
-	bool tilde_backend;
 
 
 	u32 cmd_doc_flags;
@@ -2185,7 +2183,7 @@ gb_internal bool init_build_paths(String init_filename) {
 				return false;
 			} else if (bc->build_paths[BuildPath_Output].ext.len == 0) {
 				gb_printf_err("Output path %.*s must have an appropriate extension.\n", LIT(output_file));
-				return false;				
+				return false;
 			}
 		}
 	} else {
@@ -2254,8 +2252,8 @@ gb_internal bool init_build_paths(String init_filename) {
 				output_path.name = copy_string(ha, output_path.name);
 				// The old basename is wrong. Delete it
 				gb_free(ha, old_basename.text);
-				
-				
+
+
 			}
 
 			// Replace extension.

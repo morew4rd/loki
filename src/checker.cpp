@@ -1143,7 +1143,7 @@ gb_internal void init_universal(void) {
 	}
 
 	add_global_string_constant("ODIN_MICROARCH_STRING", get_final_microarchitecture());
-	
+
 	{
 		GlobalEnumValue values[BuildMode_COUNT] = {
 			{"Executable", BuildMode_Executable},
@@ -1233,7 +1233,6 @@ gb_internal void init_universal(void) {
 	add_global_bool_constant("ODIN_NO_RTTI",                    bc->no_rtti);
 
 	add_global_bool_constant("ODIN_VALGRIND_SUPPORT",           bc->ODIN_VALGRIND_SUPPORT);
-	add_global_bool_constant("ODIN_TILDE",                      bc->tilde_backend);
 
 	add_global_constant("ODIN_COMPILE_TIMESTAMP", t_untyped_integer, exact_value_i64(odin_compile_timestamp()));
 
@@ -2792,7 +2791,7 @@ gb_internal void generate_minimum_dependency_set(Checker *c, Entity *start) {
 		str_lit("aeabi_d2h")
 	);
 
-	FORCE_ADD_RUNTIME_ENTITIES(is_arch_wasm() && !build_context.tilde_backend,
+	FORCE_ADD_RUNTIME_ENTITIES(is_arch_wasm(),
 	// 	// Extended data type internal procedures
 	// 	str_lit("umodti3"),
 	// 	str_lit("udivti3"),
