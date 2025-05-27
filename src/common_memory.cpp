@@ -1,3 +1,5 @@
+#include "internal.hpp"
+
 #if defined(GB_SYSTEM_LINUX)
 #include <malloc.h>
 #endif

@@ -1,40 +1,6 @@
 #include "internal.hpp"
 
-static BlockingMutex string_buffer_mutex = {};
-
-// NOTE(bill): Used for UTF-8 strings
-struct String {
-	u8 *  text;
-	isize len;
-
-	u8 const &operator[](isize i) const {
-		GB_ASSERT_MSG(0 <= i && i < len, "[%td]", i);
-		return text[i];
-	}
-};
-struct String_Iterator {
-	String const &str;
-	isize  pos;
-};
-// NOTE(bill): used for printf style arguments
-#define LIT(x) ((int)(x).len), (x).text
-#if defined(GB_COMPILER_MSVC) && _MSC_VER < 1700
-	#define STR_LIT(c_str) make_string(cast(u8 *)c_str, gb_size_of(c_str)-1)
-#else
-	#define STR_LIT(c_str) String{cast(u8 *)c_str, gb_size_of(c_str)-1}
-#endif
-
-#define str_lit(c_str) STR_LIT(c_str)
-
-// NOTE(bill): String16 is only used for Windows due to its file directories
-struct String16 {
-	wchar_t *text;
-	isize    len;
-	wchar_t const &operator[](isize i) const {
-		GB_ASSERT_MSG(0 <= i && i < len, "[%td]", i);
-		return text[i];
-	}
-};
+BlockingMutex string_buffer_mutex = {};
 
 
 static gb_inline String make_string(u8 const *text, isize len) {

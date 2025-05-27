@@ -31,10 +31,6 @@
 #include <string.h>
 #include <atomic> // Because I wanted the C++11 memory order semantics, of which gb.h does not offer (because it was a C89 library)
 
-static gbAllocator heap_allocator(void);
-
-#define for_array_off(index_, off_, array_) for (isize index_ = off_; index_ < (array_).count; index_++)
-#define for_array(index_, array_) for_array_off(index_, 0, array_)
 
 static i32 next_pow2(i32 n);
 static i64 next_pow2(i64 n);
