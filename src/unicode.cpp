@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 #if defined(GB_SYSTEM_WINDOWS)
 	#pragma warning(push)

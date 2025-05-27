@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 #define OdinDocHeader_MagicString "odindoc\0"
 

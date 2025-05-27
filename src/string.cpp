@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 static BlockingMutex string_buffer_mutex = {};
 

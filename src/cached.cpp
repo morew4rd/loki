@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 static GB_COMPARE_PROC(string_cmp) {
 	String const &x = *(String *)a;

@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 // Integers only
 struct RangeValue {

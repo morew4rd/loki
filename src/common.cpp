@@ -1,3 +1,5 @@
+#include "internal.hpp"
+
 #if defined(GB_SYSTEM_UNIX)
 // Required for intrinsics on GCC
 #include <xmmintrin.h>
@@ -15,8 +17,6 @@
 #endif
 
 #include <string.h>
-
-#include "gb/gb.h"
 
 #include "gb/gb.c" // TODO: remove when common.h is made
 

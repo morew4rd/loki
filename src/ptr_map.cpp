@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 #define PTR_MAP_ENABLE_MULTI_MAP 1
 

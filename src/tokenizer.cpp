@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 #define TOKEN_KINDS \
 	TOKEN_KIND(Token_Invalid, "Invalid"), \

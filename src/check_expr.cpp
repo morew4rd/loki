@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 enum CallArgumentError {
 	CallArgumentError_None,

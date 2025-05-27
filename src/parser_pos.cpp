@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 static Token ast_token(Ast *node) {
 	switch (node->kind) {

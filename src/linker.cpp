@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 struct LinkerData {
 	BlockingMutex foreign_mutex;

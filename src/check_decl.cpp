@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 static void check_stmt(CheckerContext *ctx, Ast *node, u32 flags);
 

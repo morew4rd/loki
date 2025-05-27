@@ -1,4 +1,5 @@
-#include "gb/gb.h"
+#include "internal.hpp"
+
 
 /*
 	Gather and print platform and version info to help with reporting Odin bugs.

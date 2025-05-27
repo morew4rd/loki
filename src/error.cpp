@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 
 enum ErrorValueKind : u32 {
 	ErrorValue_Error,

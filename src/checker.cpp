@@ -1,4 +1,4 @@
-#include "gb/gb.h"
+#include "internal.hpp"
 #include "checker.hpp"
 #include "parser.hpp"
 
