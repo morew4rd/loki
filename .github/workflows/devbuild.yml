@@ -52,7 +52,7 @@ jobs:
           apk add --no-cache \
           musl-dev llvm20-dev clang20 git mold lz4 \
           libxml2-static llvm20-static zlib-static zstd-static \
-          make nightly
+          make
         shell: alpine.sh --root {0}
       - name: build odin
         # NOTE: this build does slow compile times because of musl
