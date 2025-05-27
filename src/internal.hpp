@@ -128,7 +128,7 @@ template <typename T> static Slice<T> slice_from_array(Array<T> const &a);
 
 // From: common.cpp and common_memory.cpp
 
-static gbAllocator heap_allocator(void);
+// static gbAllocator heap_allocator(void);
 
 #define for_array_off(index_, off_, array_) for (isize index_ = off_; index_ < (array_).count; index_++)
 #define for_array(index_, array_) for_array_off(index_, 0, array_)
